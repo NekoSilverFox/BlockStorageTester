@@ -15,7 +15,16 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void saveSettings();
+    void loadSettings();
+
+    void closeEvent(QCloseEvent* event) override;
+
+private slots:
+    void on_actionAbout_triggered();
+
 private:
     Ui::MainWindow *ui;
+
 };
 #endif // MAINWINDOW_H

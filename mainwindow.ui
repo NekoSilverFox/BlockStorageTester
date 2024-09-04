@@ -42,7 +42,7 @@
            <widget class="QLineEdit" name="lePort"/>
           </item>
           <item row="3" column="1">
-           <widget class="QLineEdit" name="leConnURL"/>
+           <widget class="QLineEdit" name="leDriver"/>
           </item>
           <item row="1" column="3">
            <widget class="QLabel" name="label_8">
@@ -54,7 +54,7 @@
           <item row="3" column="0">
            <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Conn. URL</string>
+             <string>Qt Driver</string>
             </property>
            </widget>
           </item>
@@ -64,7 +64,7 @@
           <item row="1" column="4">
            <widget class="QLineEdit" name="lePassword">
             <property name="echoMode">
-             <enum>QLineEdit::Password</enum>
+             <enum>QLineEdit::EchoMode::Password</enum>
             </property>
            </widget>
           </item>
@@ -91,10 +91,10 @@
           <item row="1" column="2">
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Maximum</enum>
+             <enum>QSizePolicy::Policy::Maximum</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -130,7 +130,7 @@
         <widget class="QWidget" name="widget_3" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="btnConnectDB">
             <property name="text">
              <string>Connect</string>
             </property>
@@ -139,7 +139,7 @@
           <item>
            <widget class="QPushButton" name="pushButton_2">
             <property name="text">
-             <string>Create DB</string>
+             <string>Use DB</string>
             </property>
            </widget>
           </item>
@@ -309,10 +309,10 @@
           <item>
            <spacer name="horizontalSpacer_5">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Maximum</enum>
+             <enum>QSizePolicy::Policy::Maximum</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -371,10 +371,10 @@
           <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Maximum</enum>
+             <enum>QSizePolicy::Policy::Maximum</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -423,10 +423,10 @@
        <item row="0" column="2">
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::Maximum</enum>
+          <enum>QSizePolicy::Policy::Maximum</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -459,10 +459,10 @@
        <item row="1" column="2">
         <spacer name="horizontalSpacer_3">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::Maximum</enum>
+          <enum>QSizePolicy::Policy::Maximum</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -514,11 +514,11 @@
  <tabstops>
   <tabstop>leHost</tabstop>
   <tabstop>lePort</tabstop>
-  <tabstop>leConnURL</tabstop>
+  <tabstop>leDriver</tabstop>
   <tabstop>leUser</tabstop>
   <tabstop>lePassword</tabstop>
   <tabstop>leDatabase</tabstop>
-  <tabstop>pushButton</tabstop>
+  <tabstop>btnConnectDB</tabstop>
   <tabstop>pushButton_2</tabstop>
   <tabstop>comboBox</tabstop>
  </tabstops>

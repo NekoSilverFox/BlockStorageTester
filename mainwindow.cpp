@@ -8,6 +8,7 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QSqlQuery>
+#include <QSqlError>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -83,22 +84,20 @@ MainWindow::MainWindow(QWidget *parent)
         curUsingDB = ui->leDatabase->text().toLower();  // PostgreSQL数据库只能小写
         if (!isDatabaseExist(curUsingDB))
         {
-            writeErrorLog(QString("Database `%1` do not exist").arg(curUsingDB));
-            int ret = QMessageBox::question(this, "Automatic create database", QString("Database `%1` do not exist, do you want automatic create now?").arg(curUsingDB),
-                                            QMessageBox::Yes, QMessageBox::No, QMessageBox::Yes);
+            int ret = QMessageBox::question(this, "Automatic create database",
+                                            QString("Database `%1` do not exist, do you want automatic create now?").arg(curUsingDB),
+                                            QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
             if (QMessageBox::Yes == ret)
             {
                 bool succ = createDatabase(curUsingDB);
                 if (succ)
                 {
-                    writeInfoLog(QString("Successed create database `%1`").arg(curUsingDB));
                     useDatabase(curUsingDB);
                     return;
                 }
                 else
                 {
-                    writeErrorLog(QString("Create database `%1` failed").arg(curUsingDB));
                     return;
                 }
             }
@@ -107,17 +106,12 @@ MainWindow::MainWindow(QWidget *parent)
                 writeWarningLog(QString("Automatic create database `%1` cancel").arg(curUsingDB));
                 return;
             }
-
         }
-        writeInfoLog(QString("Database `%1` exist").arg(curUsingDB));
-
-
-
     });
 
 
     loadSettings();
-    writeInfoLog("Success load settings");
+
 }
 
 MainWindow::~MainWindow()
@@ -147,6 +141,8 @@ void MainWindow::loadSettings()
     ui->leUser->setText(settings.value("leUser", "").toString());
     ui->lePassword->setText(settings.value("lePassword", "").toString());
     ui->leDatabase->setText(settings.value("leDatabase", "dbBlockStoreTester").toString());
+
+    writeInfoLog("Success load settings");
 }
 
 bool MainWindow::connectDatabase(const QString& host, const int port, const QString& driver, const QString& user, const QString& pwd)
@@ -162,7 +158,7 @@ bool MainWindow::connectDatabase(const QString& host, const int port, const QStr
 
 void MainWindow::writeInfoLog(const QString& msg)
 {
-    // ui->txbLog->setTextColor(Qt::black);
+    ui->txbLog->setTextColor(Qt::black);
     ui->txbLog->append(QString("[INFO] %1").arg(msg));
 }
 
@@ -180,27 +176,43 @@ void MainWindow::writeErrorLog(const QString& msg)
 
 bool MainWindow::isDatabaseExist(const QString& db)
 {
-    QString sql = QString("SELECT 1 FROM pg_database WHERE datname = '%1'").arg(db);
+    QString sql = QString("SELECT 1 FROM pg_database WHERE datname = '%1';").arg(db);
     QSqlQuery q(sql);
     writeInfoLog(QString("Run SQL: %1").arg(sql));
 
     q.next();
-    if (q.value(0) == 1) return true;
+    if (q.value(0) == 1)
+    {
+        writeInfoLog(QString("Database `%1` exist").arg(db));
+        return true;
+    }
+
+    writeErrorLog(QString("Database `%1` do not exist").arg(db));
     return false;
 }
 
 bool MainWindow::createDatabase(const QString& db)
 {
-    QString sql = QString("CREATE DATABASE %1").arg(db);
-    QSqlQuery q(sql);
+    QString sql = QString("CREATE DATABASE \"%1\";").arg(db);
+    QSqlQuery q;
     writeInfoLog(QString("Run SQL: %1").arg(sql));
 
-    return q.exec();
+    bool succ = q.exec(sql);
+    if (succ)
+    {
+        writeInfoLog(QString("Successed create database `%1`").arg(db));
+        return true;
+    }
+    else
+    {
+        writeErrorLog(QString("Failed to create database `%1`: %2").arg(db, q.lastError().text()));
+        return false;
+    }
 }
 
 bool MainWindow::useDatabase(const QString& db)
 {
-
+    return true;
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>862</width>
-    <height>581</height>
+    <height>679</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,7 +42,14 @@
            <widget class="QLineEdit" name="lePort"/>
           </item>
           <item row="3" column="1">
-           <widget class="QLineEdit" name="leDriver"/>
+           <widget class="QLineEdit" name="leDriver">
+            <property name="text">
+             <string>QPSQL</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
           <item row="1" column="3">
            <widget class="QLabel" name="label_8">
@@ -137,7 +144,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_2">
+           <widget class="QPushButton" name="btnUseDB">
             <property name="text">
              <string>Use DB</string>
             </property>
@@ -167,7 +174,7 @@
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="lbDBExisted">
+              <widget class="QLabel" name="lbDBUsing">
                <property name="text">
                 <string>●</string>
                </property>
@@ -176,7 +183,7 @@
              <item row="1" column="1">
               <widget class="QLabel" name="label_13">
                <property name="text">
-                <string>DB Existed</string>
+                <string>DB Using</string>
                </property>
               </widget>
              </item>
@@ -418,7 +425,17 @@
         </widget>
        </item>
        <item row="0" column="4">
-        <widget class="QLCDNumber" name="lcdNumber_2"/>
+        <widget class="QLCDNumber" name="lcdNumber_2">
+         <property name="minimumSize">
+          <size>
+           <width>250</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="digitCount">
+          <number>16</number>
+         </property>
+        </widget>
        </item>
        <item row="0" column="2">
         <spacer name="horizontalSpacer_2">
@@ -444,7 +461,44 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLCDNumber" name="lcdNumber"/>
+        <widget class="QLCDNumber" name="lcdNumber">
+         <property name="minimumSize">
+          <size>
+           <width>250</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <bold>false</bold>
+           <kerning>true</kerning>
+          </font>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LayoutDirection::LeftToRight</enum>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Shape::Box</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Raised</enum>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>false</bool>
+         </property>
+         <property name="digitCount">
+          <number>16</number>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::SegmentStyle::Filled</enum>
+         </property>
+         <property name="intValue" stdset="0">
+          <number>100000</number>
+         </property>
+        </widget>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_20">
@@ -454,7 +508,11 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_3"/>
+        <widget class="QLCDNumber" name="lcdNumber_3">
+         <property name="digitCount">
+          <number>16</number>
+         </property>
+        </widget>
        </item>
        <item row="1" column="2">
         <spacer name="horizontalSpacer_3">
@@ -480,9 +538,23 @@
         </widget>
        </item>
        <item row="1" column="4">
-        <widget class="QLCDNumber" name="lcdNumber_4"/>
+        <widget class="QLCDNumber" name="lcdNumber_4">
+         <property name="digitCount">
+          <number>16</number>
+         </property>
+        </widget>
        </item>
       </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTextBrowser" name="txbLog">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>100</height>
+       </size>
+      </property>
      </widget>
     </item>
    </layout>
@@ -519,7 +591,7 @@
   <tabstop>lePassword</tabstop>
   <tabstop>leDatabase</tabstop>
   <tabstop>btnConnectDB</tabstop>
-  <tabstop>pushButton_2</tabstop>
+  <tabstop>btnUseDB</tabstop>
   <tabstop>comboBox</tabstop>
  </tabstops>
  <resources/>

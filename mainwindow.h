@@ -19,7 +19,16 @@ public:
     void saveSettings();
     void loadSettings();
 
-    bool connectDatabase(QString host, int port, QString driver, QString user, QString pwd);
+    bool connectDatabase(const QString& host, const int port, const QString& driver, const QString& user, const QString& pwd);
+
+    bool isDatabaseExist(const QString& db);
+    bool createDatabase(const QString& db);
+    bool useDatabase(const QString& db);
+
+    void writeInfoLog(const QString& msg);
+    void writeWarningLog(const QString& msg);
+    void writeErrorLog(const QString& msg);
+
 
     void closeEvent(QCloseEvent* event) override;
 
@@ -27,7 +36,9 @@ private slots:
     void on_actionAbout_triggered();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow* ui;
     QSqlDatabase db;
+    QString curUsingDB;  // 当前使用的数据库名字
+
 };
 #endif // MAINWINDOW_H

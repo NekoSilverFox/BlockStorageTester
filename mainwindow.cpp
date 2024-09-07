@@ -7,6 +7,8 @@
 #include <QSettings>
 #include <QCloseEvent>
 #include <QMessageBox>
+#include <QSqlQuery>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -15,13 +17,17 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     /* 初始化 */
+    writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
+    writeInfoLog("Start init");
+
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);
 
 
     ui->lbDBConnected->setStyleSheet("color: red;");
-    ui->lbDBExisted->setStyleSheet("color: red;");
+    ui->lbDBUsing->setStyleSheet("color: red;");
 
+    /* 点击连接按钮 */
     connect(ui->btnConnectDB, &QPushButton::clicked, this, [=](){
         if (ui->leHost->text().isEmpty()
             || ui->lePort->text().isEmpty()
@@ -29,38 +35,89 @@ MainWindow::MainWindow(QWidget *parent)
             || ui->leUser->text().isEmpty()
             || ui->lePassword->text().isEmpty())
         {
+            writeErrorLog("Fail connect to database");
             QMessageBox::critical(this, "Error", "Please input all info about the database!");
+            return;
+        }
+
+        if (db.open())
+        {
+            db.close();
+            QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+            writeWarningLog("Disconnect database");
+        }
+
+        bool isSucc = connectDatabase(ui->leHost->text(), ui->lePort->text().toInt(),
+                                      ui->leDriver->text(), ui->leUser->text(), ui->lePassword->text());
+
+        if (isSucc)
+        {
+            ui->lbDBConnected->setStyleSheet("color: green;");
+            writeInfoLog("Success connect to database");
         }
         else
         {
-            if (db.open())
-            {
-                db.close();
-                QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
-
-                qDebug() << "db close";
-            }
-
-            bool isSucc = connectDatabase(ui->leHost->text(), ui->lePort->text().toInt(),
-                                          ui->leDriver->text(), ui->leUser->text(), ui->lePassword->text());
-
-            if (isSucc)
-            {
-                ui->lbDBConnected->setStyleSheet("color: green;");
-            }
-            else
-            {
-                ui->lbDBConnected->setStyleSheet("color: red;");
-                QMessageBox::warning(this, "DB Connect fail", QString("Cannot connect to datebase %1:%2").arg(ui->leHost->text(), ui->lePort->text()));
-                // https://ru.stackoverflow.com/questions/1478871/qpsql-driver-not-found
-            }
+            ui->lbDBConnected->setStyleSheet("color: red;");
+            QMessageBox::warning(this, "DB Connect fail", QString("Cannot connect to datebase %1:%2").arg(ui->leHost->text(), ui->lePort->text()));
+            writeErrorLog(QString("Cannot connect to datebase %1:%2").arg(ui->leHost->text(), ui->lePort->text()));
+            // https://ru.stackoverflow.com/questions/1478871/qpsql-driver-not-found
         }
     });
 
+    /* 点击使用数据库 */
+    connect(ui->btnUseDB, &QPushButton::clicked, this, [&](){
+        if (!db.open())
+        {
+            writeErrorLog("Did not connect to database");
+            QMessageBox::critical(this, "Error", "Did not connect to database, please connect database at first!");
+            return;
+        }
 
-//    ui->lbDBExisted->setStyleSheet("color: green;");
+        if (ui->leDatabase->text().isEmpty())
+        {
+            writeErrorLog("Database name is empty");
+            QMessageBox::critical(this, "Error", "The database name is empty!");
+            return;
+        }
+
+        curUsingDB = ui->leDatabase->text().toLower();  // PostgreSQL数据库只能小写
+        if (!isDatabaseExist(curUsingDB))
+        {
+            writeErrorLog(QString("Database `%1` do not exist").arg(curUsingDB));
+            int ret = QMessageBox::question(this, "Automatic create database", QString("Database `%1` do not exist, do you want automatic create now?").arg(curUsingDB),
+                                            QMessageBox::Yes, QMessageBox::No, QMessageBox::Yes);
+
+            if (QMessageBox::Yes == ret)
+            {
+                bool succ = createDatabase(curUsingDB);
+                if (succ)
+                {
+                    writeInfoLog(QString("Successed create database `%1`").arg(curUsingDB));
+                    useDatabase(curUsingDB);
+                    return;
+                }
+                else
+                {
+                    writeErrorLog(QString("Create database `%1` failed").arg(curUsingDB));
+                    return;
+                }
+            }
+            else
+            {
+                writeWarningLog(QString("Automatic create database `%1` cancel").arg(curUsingDB));
+                return;
+            }
+
+        }
+        writeInfoLog(QString("Database `%1` exist").arg(curUsingDB));
+
+
+
+    });
+
 
     loadSettings();
+    writeInfoLog("Success load settings");
 }
 
 MainWindow::~MainWindow()
@@ -92,7 +149,7 @@ void MainWindow::loadSettings()
     ui->leDatabase->setText(settings.value("leDatabase", "dbBlockStoreTester").toString());
 }
 
-bool MainWindow::connectDatabase(QString host, int port, QString driver, QString user, QString pwd)
+bool MainWindow::connectDatabase(const QString& host, const int port, const QString& driver, const QString& user, const QString& pwd)
 {
     db = QSqlDatabase::addDatabase(driver);
     db.setHostName(host);
@@ -101,6 +158,49 @@ bool MainWindow::connectDatabase(QString host, int port, QString driver, QString
     db.setPassword(pwd);
 
     return db.open();
+}
+
+void MainWindow::writeInfoLog(const QString& msg)
+{
+    // ui->txbLog->setTextColor(Qt::black);
+    ui->txbLog->append(QString("[INFO] %1").arg(msg));
+}
+
+void MainWindow::writeWarningLog(const QString& msg)
+{
+    ui->txbLog->setTextColor(Qt::darkYellow);
+    ui->txbLog->append(QString("[WARNING] %1").arg(msg));
+}
+
+void MainWindow::writeErrorLog(const QString& msg)
+{
+    ui->txbLog->setTextColor(Qt::red);
+    ui->txbLog->append(QString("[ERROR] %1").arg(msg));
+}
+
+bool MainWindow::isDatabaseExist(const QString& db)
+{
+    QString sql = QString("SELECT 1 FROM pg_database WHERE datname = '%1'").arg(db);
+    QSqlQuery q(sql);
+    writeInfoLog(QString("Run SQL: %1").arg(sql));
+
+    q.next();
+    if (q.value(0) == 1) return true;
+    return false;
+}
+
+bool MainWindow::createDatabase(const QString& db)
+{
+    QString sql = QString("CREATE DATABASE %1").arg(db);
+    QSqlQuery q(sql);
+    writeInfoLog(QString("Run SQL: %1").arg(sql));
+
+    return q.exec();
+}
+
+bool MainWindow::useDatabase(const QString& db)
+{
+
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)

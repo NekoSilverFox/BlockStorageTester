@@ -4,17 +4,24 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
+# 包含 Crypto++ 头文件路径
+# INCLUDEPATH += $$PWD/cryptopp
+
 LIBS += -L/opt/homebrew/lib# -lpq
+
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+# 添加所有 .cpp 源码文件到项目中
 SOURCES += \
     main.cpp \
     mainwindow.cpp
 
+
 HEADERS += \
+    HashAlgorithm.h \
     mainwindow.h
 
 FORMS += \

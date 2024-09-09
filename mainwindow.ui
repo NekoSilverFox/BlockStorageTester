@@ -24,33 +24,6 @@
        <item row="1" column="2">
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="3">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>User</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="3">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Database</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="lePort"/>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="leDriver">
-            <property name="text">
-             <string>QPSQL</string>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="3">
            <widget class="QLabel" name="label_8">
             <property name="text">
@@ -58,29 +31,8 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Qt Driver</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="4">
-           <widget class="QLineEdit" name="leDatabase"/>
-          </item>
-          <item row="1" column="4">
-           <widget class="QLineEdit" name="lePassword">
-            <property name="echoMode">
-             <enum>QLineEdit::EchoMode::Password</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Host</string>
-            </property>
-           </widget>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lePort"/>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_3">
@@ -89,11 +41,22 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="3">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>User</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="4">
            <widget class="QLineEdit" name="leUser"/>
           </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="leHost"/>
+          <item row="2" column="3">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Database</string>
+            </property>
+           </widget>
           </item>
           <item row="1" column="2">
            <spacer name="horizontalSpacer_4">
@@ -110,6 +73,43 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="leHost"/>
+          </item>
+          <item row="1" column="4">
+           <widget class="QLineEdit" name="lePassword">
+            <property name="echoMode">
+             <enum>QLineEdit::EchoMode::Password</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QLineEdit" name="leDatabase"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Host</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Qt Driver</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="leDriver">
+            <property name="text">
+             <string>QPSQL</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -144,9 +144,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnUseDB">
+           <widget class="QPushButton" name="btnDisconnect">
             <property name="text">
-             <string>Use DB</string>
+             <string>Disconnect</string>
             </property>
            </widget>
           </item>
@@ -345,7 +345,7 @@
             </item>
             <item>
              <property name="text">
-              <string notr="true">SHA128</string>
+              <string notr="true">SHA1</string>
              </property>
             </item>
             <item>
@@ -360,7 +360,7 @@
             </item>
             <item>
              <property name="text">
-              <string notr="true">tiger16</string>
+              <string notr="true">tiger128</string>
              </property>
             </item>
             <item>
@@ -591,7 +591,7 @@
   <tabstop>lePassword</tabstop>
   <tabstop>leDatabase</tabstop>
   <tabstop>btnConnectDB</tabstop>
-  <tabstop>btnUseDB</tabstop>
+  <tabstop>btnDisconnect</tabstop>
   <tabstop>comboBox</tabstop>
  </tabstops>
  <resources/>

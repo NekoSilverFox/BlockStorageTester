@@ -1,5 +1,9 @@
 #include "mainwindow.h"
 
+
+#include "HashAlgorithm.h"
+#include <QFile>
+
 #include <QApplication>
 
 int main(int argc, char *argv[])

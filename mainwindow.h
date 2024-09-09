@@ -32,12 +32,20 @@ public:
 
 private slots:
     void on_actionAbout_triggered();
-    void btnConnectDB_clicked();
+    void autoConnectionDBModule();
 
 private:
     Ui::MainWindow* ui;
-    QSqlDatabase curDB;
-    QString curDBName;  // 当前使用的数据库名字
+
+    QString _host;
+    qint16 _port;
+    QString _driver;
+    QString _user;
+    QString _password;
+
+    QSqlDatabase _curDB;
+    QString _curDBName;  // 当前使用的数据库名字
+    bool _isFinalConnDB; // 最终成功连接到数据库
 
 };
 #endif // MAINWINDOW_H

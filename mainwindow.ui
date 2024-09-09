@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>862</width>
-    <height>679</height>
+    <height>675</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,41 +24,78 @@
        <item row="1" column="2">
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="1" column="3">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Password</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="lePort"/>
+           <widget class="QLineEdit" name="leHost"/>
           </item>
-          <item row="1" column="0">
+          <item row="1" column="3">
            <widget class="QLabel" name="label_3">
             <property name="text">
              <string>Port</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="3">
-           <widget class="QLabel" name="label_9">
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>User</string>
+             <string>Qt Driver</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="4">
-           <widget class="QLineEdit" name="leUser"/>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="leDriver">
+            <property name="text">
+             <string>QPSQL</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
-          <item row="2" column="3">
+          <item row="4" column="4">
+           <widget class="QLineEdit" name="leDatabase"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Host</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QLineEdit" name="lePort"/>
+          </item>
+          <item row="4" column="3">
            <widget class="QLabel" name="label_7">
             <property name="text">
              <string>Database</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>User</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="leUser"/>
+          </item>
+          <item row="2" column="3">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Password</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QLineEdit" name="lePassword">
+            <property name="echoMode">
+             <enum>QLineEdit::EchoMode::Password</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>
@@ -73,43 +110,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="leHost"/>
-          </item>
-          <item row="1" column="4">
-           <widget class="QLineEdit" name="lePassword">
-            <property name="echoMode">
-             <enum>QLineEdit::EchoMode::Password</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="4">
-           <widget class="QLineEdit" name="leDatabase"/>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Host</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Qt Driver</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="leDriver">
-            <property name="text">
-             <string>QPSQL</string>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
           </item>
          </layout>
         </widget>
@@ -136,6 +136,12 @@
        <item row="1" column="3">
         <widget class="QWidget" name="widget_3" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QPushButton" name="btnConnectDB">
             <property name="text">
@@ -151,13 +157,29 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="cbAutoDropDB">
+            <property name="text">
+             <string> Auto drop DB</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QWidget" name="widget_4" native="true">
             <layout class="QFormLayout" name="formLayout">
              <property name="leftMargin">
               <number>0</number>
              </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
              <property name="rightMargin">
               <number>5</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
              </property>
              <item row="0" column="0">
               <widget class="QLabel" name="lbDBConnected">
@@ -413,6 +435,12 @@
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_3">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>120</height>
+       </size>
+      </property>
       <property name="title">
        <string>Output infomation</string>
       </property>
@@ -549,10 +577,16 @@
     </item>
     <item>
      <widget class="QTextBrowser" name="txbLog">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>90</height>
+       </size>
+      </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>100</height>
+        <height>200</height>
        </size>
       </property>
      </widget>
@@ -567,6 +601,9 @@
      <width>862</width>
      <height>24</height>
     </rect>
+   </property>
+   <property name="nativeMenuBar">
+    <bool>false</bool>
    </property>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -585,10 +622,7 @@
  </widget>
  <tabstops>
   <tabstop>leHost</tabstop>
-  <tabstop>lePort</tabstop>
   <tabstop>leDriver</tabstop>
-  <tabstop>leUser</tabstop>
-  <tabstop>lePassword</tabstop>
   <tabstop>leDatabase</tabstop>
   <tabstop>btnConnectDB</tabstop>
   <tabstop>btnDisconnect</tabstop>

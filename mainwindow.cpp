@@ -24,12 +24,14 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);
 
-
     ui->lbDBConnected->setStyleSheet("color: red;");
     ui->lbDBUsing->setStyleSheet("color: red;");
 
+    _curDBName = "";
+    _isFinalConnDB = false;
+
     /* 点击连接按钮 */
-    connect(ui->btnConnectDB, &QPushButton::clicked, this, &MainWindow::btnConnectDB_clicked);
+    connect(ui->btnConnectDB, &QPushButton::clicked, this, &MainWindow::autoConnectionDBModule);
     connect(ui->btnDisconnect, &QPushButton::clicked, this, &MainWindow::disconnectDatabase);
 
     loadSettings();
@@ -50,6 +52,7 @@ void MainWindow::saveSettings()
     settings.setValue("leUser", ui->leUser->text());
     settings.setValue("lePassword", ui->lePassword->text());
     settings.setValue("leDatabase", ui->leDatabase->text());
+    settings.setValue("cbAutoDropDB", ui->cbAutoDropDB->isChecked());
 }
 
 void MainWindow::loadSettings()
@@ -62,6 +65,7 @@ void MainWindow::loadSettings()
     ui->leUser->setText(settings.value("leUser", "").toString());
     ui->lePassword->setText(settings.value("lePassword", "").toString());
     ui->leDatabase->setText(settings.value("leDatabase", "dbBlockStoreTester").toString());
+    ui->cbAutoDropDB->setChecked(settings.value("cbAutoDropDB", true).toBool());
 
     writeInfoLog("Success load settings");
 }
@@ -69,18 +73,18 @@ void MainWindow::loadSettings()
 // https://ru.stackoverflow.com/questions/1478871/qpsql-driver-not-found
 bool MainWindow::connectDatabase(const QString& host, const int port, const QString& driver, const QString& user, const QString& pwd, const QString& database)
 {
-    curDB = QSqlDatabase::addDatabase(driver, QSqlDatabase::defaultConnection);
-    curDB.setHostName(host);
-    curDB.setPort(port);
-    curDB.setUserName(user);
-    curDB.setPassword(pwd);
+    _curDB = QSqlDatabase::addDatabase(driver, QSqlDatabase::defaultConnection);
+    _curDB.setHostName(host);
+    _curDB.setPort(port);
+    _curDB.setUserName(user);
+    _curDB.setPassword(pwd);
 
     if (!database.isEmpty())
     {
-        curDB.setDatabaseName(database);
+        _curDB.setDatabaseName(database);
     }
 
-    if (curDB.open())
+    if (_curDB.open())
     {
         ui->lbDBConnected->setStyleSheet("color: green;");
         writeInfoLog(QString("Successed connect to database %1 from %2:%3").arg(database, host, QString::number(port)));
@@ -157,32 +161,50 @@ bool MainWindow::createDatabase(const QString& db)
 bool MainWindow::disconnectDatabase()
 {
     // 检查数据库连接是否有效并已打开
-    if (curDB.isValid() && curDB.open())
+    if (_curDB.isValid() && _curDB.open())
     {
-        curDB.close();
-        curDB = QSqlDatabase(); // 将 curDB 重置为空，以解除与实际数据库连接的关联
+        _curDB.close();
+        _curDB = QSqlDatabase(); // 将 _curDB 重置为空，以解除与实际数据库连接的关联
         QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+        _isFinalConnDB = false;
 
         ui->lbDBUsing->setStyleSheet("color: red;");
         ui->lbDBConnected->setStyleSheet("color: red;");
-        writeInfoLog(QString("Disconnect database %1").arg(curDB.databaseName()));
+        writeInfoLog(QString("Disconnect database %1").arg(_curDB.databaseName()));
         return true;
     }
 
-    writeWarningLog(QString("Failed disconnect database %1").arg(curDB.databaseName()));
+    writeWarningLog(QString("Failed disconnect database %1").arg(_curDB.databaseName()));
     return false;
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    /* 自动删除使用的数据库 */
+    if (ui->cbAutoDropDB->isChecked() && _isFinalConnDB && !_curDBName.isEmpty())
+    {
+        QString dropDBName = _curDB.databaseName();
+
+        disconnectDatabase();
+        connectDatabase(_host, _port,_driver, _user, _password, "");
+
+        QSqlQuery q;
+        QString sql = QString("DROP DATABASE \"%1\";").arg(dropDBName);
+        bool succ = q.exec(sql);
+        if (succ)
+        {
+            qDebug() << QString("Successed drop database `%1`").arg(dropDBName);
+        }
+        else
+        {
+            qDebug() << QString("Failed drop database `%1`").arg(dropDBName);
+        }
+    }
+
+    disconnectDatabase();
+
     event->accept();
     QMainWindow::closeEvent(event);
-
-    if (curDB.open())
-    {
-        curDB.close();
-        QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
-    }
 
     saveSettings();
 }
@@ -192,16 +214,18 @@ void MainWindow::on_actionAbout_triggered()
 {
     QMessageBox::about(this, "About Block Storage Tester",
                        "Project Block Storage Tester<br><br>"
+                       "Author: Meng Jianing<br>"
                        "Source Code:<br>"
                        "<a href=\"https://github.com/NekoSilverFox/BlockStorageTester\">[Github] BlockStorageTester</a>"
                        "<br><br>"
-                       "License: Apache License 2.0"
+                       "Made on Qt Creator 14.0.1<br>"
+                       "Based on Qt 6.7.2"
                        "<br><br>"
-                       "Made on Qt 6.4.3");
+                       "License: Apache License 2.0");
 }
 
 
-void MainWindow::btnConnectDB_clicked()
+void MainWindow::autoConnectionDBModule()
 {
     /** 先尝试连接数据库（使用默认数据库名）
      */
@@ -216,25 +240,28 @@ void MainWindow::btnConnectDB_clicked()
         QMessageBox::critical(this, "Error", "Please input all info about the database!");
         return;
     }
+    _host = ui->leHost->text();
+    _port = ui->lePort->text().toInt();
+    _driver = ui->leDriver->text();
+    _user = ui->leUser->text();
+    _password = ui->lePassword->text();
+    _curDBName = ui->leDatabase->text().toLower();  // PostgreSQL数据库只能小写
 
     disconnectDatabase();
-
-    connectDatabase(ui->leHost->text(), ui->lePort->text().toInt(),
-                                  ui->leDriver->text(), ui->leUser->text(), ui->lePassword->text(), "");
+    connectDatabase(_host, _port,_driver, _user, _password, "");
 
     /**
      * 检查用户指定的数据库是否存在
      */
-    curDBName = ui->leDatabase->text().toLower();  // PostgreSQL数据库只能小写
-    if (!isDatabaseExist(curDBName))
+    if (!isDatabaseExist(_curDBName))
     {
         int ret = QMessageBox::question(this, "Automatic create database",
-                                        QString("Database `%1` do not exist, do you want automatic create now?").arg(curDBName),
+                                        QString("Database `%1` do not exist, do you want automatic create now?").arg(_curDBName),
                                         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         if (QMessageBox::Yes == ret)
         {
-            bool succ = createDatabase(curDBName);
+            bool succ = createDatabase(_curDBName);
             if (!succ)
             {
                 return;
@@ -242,7 +269,7 @@ void MainWindow::btnConnectDB_clicked()
         }
         else
         {
-            writeWarningLog(QString("Automatic create database `%1` cancel").arg(curDBName));
+            writeWarningLog(QString("Automatic create database `%1` cancel").arg(_curDBName));
             return;
         }
     }
@@ -251,12 +278,16 @@ void MainWindow::btnConnectDB_clicked()
      * 重新连接为用户指定的数据库
      */
     disconnectDatabase();
-    writeInfoLog(QString("Re-connect database `%1` ...").arg(curDBName));
+    writeInfoLog(QString("Re-connect database `%1` ...").arg(_curDBName));
     ui->lbDBConnected->setStyleSheet("color: orange;");
-    connectDatabase(ui->leHost->text(), ui->lePort->text().toInt(),
-                    ui->leDriver->text(), ui->leUser->text(), ui->lePassword->text(), curDBName);
-    ui->lbDBUsing->setStyleSheet("color: green;");
-    QMessageBox::information(this, "Success connected",
-                             QString("Successed connected to datebase %1 from %2:%3").arg(curDBName, ui->leHost->text(), ui->lePort->text()));
+
+    _isFinalConnDB = connectDatabase(_host, _port,_driver, _user, _password, _curDBName);
+    if (_isFinalConnDB)
+    {
+        ui->lbDBUsing->setStyleSheet("color: green;");
+        QMessageBox::information(this, "Success connected",
+                                 QString("Successed connected to datebase %1 from %2:%3").arg(_curDBName, _host, QString::number(_port)));
+    }
+
 }
 

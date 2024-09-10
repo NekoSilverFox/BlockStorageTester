@@ -622,11 +622,22 @@
  </widget>
  <tabstops>
   <tabstop>leHost</tabstop>
+  <tabstop>lePort</tabstop>
+  <tabstop>leUser</tabstop>
+  <tabstop>lePassword</tabstop>
   <tabstop>leDriver</tabstop>
   <tabstop>leDatabase</tabstop>
   <tabstop>btnConnectDB</tabstop>
-  <tabstop>btnDisconnect</tabstop>
+  <tabstop>btnSelectSourceFile</tabstop>
+  <tabstop>btnSelectBlockFile</tabstop>
   <tabstop>cbBlockSize</tabstop>
+  <tabstop>cbHashAlg</tabstop>
+  <tabstop>btnRunTest</tabstop>
+  <tabstop>cbAutoDropDB</tabstop>
+  <tabstop>leSourceFile</tabstop>
+  <tabstop>leBlockFile</tabstop>
+  <tabstop>btnDisconnect</tabstop>
+  <tabstop>txbLog</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -57,6 +57,12 @@ void MainWindow::saveSettings()
     settings.setValue("lePassword", ui->lePassword->text());
     settings.setValue("leDatabase", ui->leDatabase->text());
     settings.setValue("cbAutoDropDB", ui->cbAutoDropDB->isChecked());
+
+    settings.setValue("leSourceFile", ui->leSourceFile->text());
+    settings.setValue("leBlockFile", ui->leBlockFile->text());
+
+    settings.setValue("cbBlockSize", ui->cbBlockSize->currentIndex());
+    settings.setValue("cbHashAlg", ui->cbHashAlg->currentIndex());
 }
 
 void MainWindow::loadSettings()
@@ -70,6 +76,12 @@ void MainWindow::loadSettings()
     ui->lePassword->setText(settings.value("lePassword", "").toString());
     ui->leDatabase->setText(settings.value("leDatabase", "dbBlockStoreTester").toString());
     ui->cbAutoDropDB->setChecked(settings.value("cbAutoDropDB", true).toBool());
+
+    ui->leSourceFile->setText(settings.value("leSourceFile", "").toString());
+    ui->leBlockFile->setText(settings.value("leBlockFile", "").toString());
+
+    ui->cbBlockSize->setCurrentIndex(settings.value("cbBlockSize", 0).toInt());
+    ui->cbHashAlg->setCurrentIndex(settings.value("cbHashAlg", 0).toInt());
 
     writeInfoLog("Success load settings");
 }
@@ -97,7 +109,7 @@ bool MainWindow::connectDatabase(const QString& host, const int port, const QStr
     else
     {
         ui->lbDBConnected->setStyleSheet("color: red;");
-        QMessageBox::warning(this, "DB Connect fail",
+        QMessageBox::warning(this, "DB Connect failed",
                              QString("Cannot connect to datebase %1 from %2:%3").arg(database, host, QString::number(port)));
         writeErrorLog(QString("Cannot connect to datebase %1 from %2:%3").arg(database, host, QString::number(port)));
         return false;

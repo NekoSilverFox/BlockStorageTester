@@ -36,6 +36,7 @@ private slots:
     void on_actionAbout_triggered();
     void autoConnectionDBModule();
     void runTestModule();
+    void selectSourceFile();
 
 private:
     Ui::MainWindow* ui;

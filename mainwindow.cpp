@@ -1,14 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
 #include <QPixmap>
 #include <QMessageBox>
 #include <QSettings>
 #include <QCloseEvent>
-#include <QMessageBox>
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QFileDialog>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -21,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
     writeInfoLog("Start init");
 
-    setWindowIcon(QIcon(":/icons/logo.png"));
+    // setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);
 
@@ -34,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     /* 点击连接按钮 */
     connect(ui->btnConnectDB, &QPushButton::clicked, this, &MainWindow::autoConnectionDBModule);
     connect(ui->btnDisconnect, &QPushButton::clicked, this, &MainWindow::disconnectDatabase);
+
+    connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
 
     /* TODO 点击运行禁用按钮 */
     connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){setActivityWidget(false);});
@@ -332,6 +333,17 @@ void MainWindow::autoConnectionDBModule()
 
 }
 
+
+void MainWindow::selectSourceFile()
+{
+    QString path = QFileDialog::getOpenFileName(this, "Select file", QDir::homePath());
+    if (path.isEmpty())
+    {
+        QMessageBox::warning(this, "Warning", "Do not selected any file!");
+        return;
+    }
+}
+
 /** 执行测试
  * @brief MainWindow::runTestModule
  */
@@ -339,4 +351,5 @@ void MainWindow::runTestModule()
 {
 
 }
+
 

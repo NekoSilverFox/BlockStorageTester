@@ -1,14 +1,12 @@
 #include "mainwindow.h"
 
-
-#include "HashAlgorithm.h"
 #include <QFile>
-
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    // a.setWindowIcon(QIcon(":/icons/logo.png"));
 
     qDebug() << "Available drivers:" << QSqlDatabase::drivers();
 

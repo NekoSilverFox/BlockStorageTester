@@ -235,7 +235,7 @@
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="btnSelectSourceFile">
             <property name="text">
              <string>Select</string>
             </property>
@@ -255,7 +255,7 @@
            <widget class="QLineEdit" name="leBlockFile"/>
           </item>
           <item row="1" column="2">
-           <widget class="QPushButton" name="pushButton_4">
+           <widget class="QPushButton" name="btnSelectBlockFile">
             <property name="text">
              <string>Select</string>
             </property>
@@ -275,7 +275,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox">
+           <widget class="QComboBox" name="cbBlockSize">
             <item>
              <property name="text">
               <string notr="true">4</string>
@@ -359,7 +359,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox_2">
+           <widget class="QComboBox" name="cbHashAlg">
             <item>
              <property name="text">
               <string notr="true">MD5</string>
@@ -421,7 +421,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_5">
+           <widget class="QPushButton" name="btnRunTest">
             <property name="text">
              <string>Run Test</string>
             </property>
@@ -599,7 +599,7 @@
      <x>0</x>
      <y>0</y>
      <width>862</width>
-     <height>24</height>
+     <height>37</height>
     </rect>
    </property>
    <property name="nativeMenuBar">
@@ -626,7 +626,7 @@
   <tabstop>leDatabase</tabstop>
   <tabstop>btnConnectDB</tabstop>
   <tabstop>btnDisconnect</tabstop>
-  <tabstop>comboBox</tabstop>
+  <tabstop>cbBlockSize</tabstop>
  </tabstops>
  <resources/>
  <connections/>

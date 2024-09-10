@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/sql-server.png</file>
+        <file>icons/logo.png</file>
     </qresource>
 </RCC>

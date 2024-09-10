@@ -28,11 +28,14 @@ public:
     void writeWarningLog(const QString& msg);
     void writeErrorLog(const QString& msg);
 
+    void setActivityWidget(const bool activity);
+
     void closeEvent(QCloseEvent* event) override;
 
 private slots:
     void on_actionAbout_triggered();
     void autoConnectionDBModule();
+    void runTestModule();
 
 private:
     Ui::MainWindow* ui;

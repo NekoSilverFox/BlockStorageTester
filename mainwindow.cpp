@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
     writeInfoLog("Start init");
 
+    setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);
 
@@ -33,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent)
     /* 点击连接按钮 */
     connect(ui->btnConnectDB, &QPushButton::clicked, this, &MainWindow::autoConnectionDBModule);
     connect(ui->btnDisconnect, &QPushButton::clicked, this, &MainWindow::disconnectDatabase);
+
+    /* TODO 点击运行禁用按钮 */
+    connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){setActivityWidget(false);});
 
     loadSettings();
 }
@@ -116,6 +120,31 @@ void MainWindow::writeErrorLog(const QString& msg)
 {
     ui->txbLog->setTextColor(Qt::red);
     ui->txbLog->append(QString("[ERROR] %1").arg(msg));
+}
+
+/** 设置小部件的可操作性
+ * @brief MainWindow::setActivityWidget
+ * @param activity
+ */
+void MainWindow::setActivityWidget(const bool activity)
+{
+    ui->leUser->setReadOnly(!activity);
+    ui->lePassword->setReadOnly(!activity);
+    ui->leHost->setReadOnly(!activity);
+    ui->lePort->setReadOnly(!activity);
+    ui->leDatabase->setReadOnly(!activity);
+
+    ui->btnConnectDB->setEnabled(activity);
+    ui->btnDisconnect->setEnabled(activity);
+
+    ui->leSourceFile->setReadOnly(!activity);
+    ui->leBlockFile->setReadOnly(!activity);
+    ui->btnSelectSourceFile->setEnabled(activity);
+    ui->btnSelectBlockFile->setEnabled(activity);
+
+    ui->cbBlockSize->setEnabled(activity);
+    ui->cbHashAlg->setEnabled(activity);
+    ui->btnRunTest->setEnabled(activity);
 }
 
 bool MainWindow::isDatabaseExist(const QString& db)
@@ -288,6 +317,14 @@ void MainWindow::autoConnectionDBModule()
         QMessageBox::information(this, "Success connected",
                                  QString("Successed connected to datebase %1 from %2:%3").arg(_curDBName, _host, QString::number(_port)));
     }
+
+}
+
+/** 执行测试
+ * @brief MainWindow::runTestModule
+ */
+void MainWindow::runTestModule()
+{
 
 }
 

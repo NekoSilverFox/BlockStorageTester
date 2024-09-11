@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    // a.setWindowIcon(QIcon(":/icons/logo.png"));
+    a.setWindowIcon(QIcon(":/icons/logo.png"));
 
     qDebug() << "Available drivers:" << QSqlDatabase::drivers();
 

@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
     writeInfoLog("Start init");
 
-    // setWindowIcon(QIcon(":/icons/logo.png"));
+    setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);
 
@@ -64,6 +64,8 @@ void MainWindow::saveSettings()
 
     settings.setValue("cbBlockSize", ui->cbBlockSize->currentIndex());
     settings.setValue("cbHashAlg", ui->cbHashAlg->currentIndex());
+
+    writeInfoLog("Successed save settings");
 }
 
 void MainWindow::loadSettings()
@@ -84,7 +86,7 @@ void MainWindow::loadSettings()
     ui->cbBlockSize->setCurrentIndex(settings.value("cbBlockSize", 0).toInt());
     ui->cbHashAlg->setCurrentIndex(settings.value("cbHashAlg", 0).toInt());
 
-    writeInfoLog("Success load settings");
+    writeInfoLog("Successed load settings");
 }
 
 // https://ru.stackoverflow.com/questions/1478871/qpsql-driver-not-found
@@ -290,13 +292,18 @@ void MainWindow::autoConnectionDBModule()
     _curDBName = ui->leDatabase->text().toLower();  // PostgreSQL数据库只能小写
 
     disconnectDatabase();
-    connectDatabase(_host, _port,_driver, _user, _password, "");
+    bool isSucc = connectDatabase(_host, _port,_driver, _user, _password, "");
+    if (!isSucc)
+    {
+        return;
+    }
 
     /**
      * 检查用户指定的数据库是否存在
      */
     if (!isDatabaseExist(_curDBName))
     {
+        /* 数据库成功连接 && 数据库不存在 */
         int ret = QMessageBox::question(this, "Automatic create database",
                                         QString("Database `%1` do not exist, do you want automatic create now?").arg(_curDBName),
                                         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
@@ -320,7 +327,7 @@ void MainWindow::autoConnectionDBModule()
      * 重新连接为用户指定的数据库
      */
     disconnectDatabase();
-    writeInfoLog(QString("Re-connect database `%1` ...").arg(_curDBName));
+    writeInfoLog(QString("Re-connect to database `%1` ...").arg(_curDBName));
     ui->lbDBConnected->setStyleSheet("color: orange;");
 
     _isFinalConnDB = connectDatabase(_host, _port,_driver, _user, _password, _curDBName);

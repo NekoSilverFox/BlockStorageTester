@@ -47,7 +47,7 @@ private:
     QString _user;
     QString _password;
 
-    QSqlDatabase _curDB;
+    QSqlDatabase _curDB; // 当前操作的数据库对象
     QString _curDBName;  // 当前使用的数据库名字
     bool _isFinalConnDB; // 最终成功连接到数据库
 

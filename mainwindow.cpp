@@ -37,7 +37,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
 
     /* TODO 点击运行禁用按钮 */
-    connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){setActivityWidget(false);});
+    connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){
+        // setActivityWidget(false);
+        createTable();
+    });
 
     loadSettings();
 }
@@ -201,6 +204,86 @@ bool MainWindow::createDatabase(const QString& db)
     }
 }
 
+bool MainWindow::createTable()
+{
+    QSqlQuery q;
+    QString sql = QString("CREATE TABLE tb_hash ("
+                          "hash_value BYTEA NOT NULL,"
+                          "file_name TEXT NOT NULL,"
+                          "location INTEGER NOT NULL,"
+                          "counter NUMERIC(1000, 0) NOT NULL DEFAULT 1);");
+
+    writeInfoLog("Create table `tb_hash`");
+    writeInfoLog(QString("\t-> Run SQL: %1").arg(sql));
+
+    if (q.exec(sql))
+    {
+        writeInfoLog("\t-> Successed table `tb_hash`");
+        return true;
+    }
+
+    writeErrorLog(QString("\t-> Failed to create table `tb_hash`: %1").arg(q.lastError().text()));
+    return false;
+}
+
+bool MainWindow::insertNewRow(const QByteArray& hashValue, const QString& fileName, const int location)
+{
+    writeInfoLog("Insert new row to tabel");
+    // 创建查询对象
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
+
+    // 准备插入语句，使用参数绑定防止 SQL 注入
+    q.prepare("INSERT INTO tb_hash (hash_value, file_name, location, counter) "
+              "VALUES (:hash_value, :file_name, :location, :counter)");
+
+    // 绑定参数
+    q.bindValue(":hash_value", hashValue);  // 直接绑定 QByteArray
+    q.bindValue(":file_name", fileName);
+    q.bindValue(":location", location);
+    q.bindValue(":counter", 1);
+
+    // 执行插入
+    if (q.exec())
+    {
+        writeInfoLog("\t-> Successed insert new row");
+        return true;
+    }
+
+    writeErrorLog(QString("\t-> Failed to insert new row: %1").arg(q.lastError().text()));
+    return false;
+}
+
+int MainWindow::getHashRepeatTimes(const QByteArray &hashValue)
+{
+    // 创建查询对象
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
+
+    // 准备查询语句，查找相同的哈希值
+    q.prepare("SELECT counter FROM tb_hash WHERE hash_value = :hash_value");
+
+    // 绑定哈希值参数
+    q.bindValue(":hash_value", hashValue);
+
+    // 执行查询
+    if (!q.exec()) {
+        writeErrorLog((QString("\t-> Failed to get HashRepeatTimes: %1").arg(q.lastError().text())));
+        return -1;  // 返回 -1 表示查询失败
+    }
+
+    // 检查是否存在结果
+    if (q.next())
+    {
+        int counter = q.value(0).toInt();  // 获取重复次数
+        writeInfoLog(QString("\t-> Find the same hash, repeat times: %1").arg(counter));
+        return counter;
+    }
+    else
+    {
+        writeInfoLog("\t-> Find the same hash, repeat times: %1");
+        qDebug() << "Identical hash not found";
+        return 0;  // 返回 0 表示没有找到重复的记录
+    }
+}
 
 bool MainWindow::disconnectDatabase()
 {
@@ -337,7 +420,6 @@ void MainWindow::autoConnectionDBModule()
         QMessageBox::information(this, "Success connected",
                                  QString("Successed connected to datebase %1 from %2:%3").arg(_curDBName, _host, QString::number(_port)));
     }
-
 }
 
 

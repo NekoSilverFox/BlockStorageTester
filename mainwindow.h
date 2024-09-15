@@ -24,6 +24,11 @@ public:
     bool createDatabase(const QString& db);
     bool disconnectDatabase();
 
+    bool createTable();
+    bool insertNewRow(const QByteArray& hashValue, const QString& fileName, const int location);
+    int getHashRepeatTimes(const QByteArray& hashValue);
+    bool updateRow();
+
     void writeInfoLog(const QString& msg);
     void writeWarningLog(const QString& msg);
     void writeErrorLog(const QString& msg);

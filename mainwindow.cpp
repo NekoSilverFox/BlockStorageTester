@@ -9,6 +9,8 @@
 #include <QSqlError>
 #include <QFileDialog>
 
+#include "HashAlgorithm.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -456,6 +458,97 @@ void MainWindow::autoConnectionDBModule()
     }
 }
 
+void MainWindow::testBlockWritePerformanceModule()
+{
+    writeInfoLog("Start test block write performance");
+
+    /* 数据库无连接 */
+    if (!_isFinalConnDB)
+    {
+        writeErrorLog("↳ Database do not connected, test end");
+        QMessageBox::warning(this, "Warning", "Database do not connected!");
+        return;
+    }
+
+    /* 没有选择文件或保存路径 */
+    if (ui->leSourceFile->text().isEmpty() || ui->leBlockFile->text().isEmpty())
+    {
+        writeErrorLog("↳ Source file or block file path is empty");
+        QMessageBox::warning(this, "Warning", "Source file or block file path is empty!");
+        return;
+    }
+
+    /* 为了避免意外操作，给暂时禁用按钮 */
+    setActivityWidget(false);
+
+    /* 打开源文件 */
+    QFile sourceFile(ui->leSourceFile->text());
+    QFileInfo sourceInfo;
+    qint64 source_size;  // Bytes
+    QDataStream in;
+    if (sourceFile.open(QIODevice::ReadOnly))
+    {
+        in.setDevice(&sourceFile);
+        in.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
+        sourceInfo.setFile(sourceFile);
+        source_size = sourceInfo.size();
+
+        writeInfoLog(QString("↳ Successed open file %1, size %2 Bytes").arg(sourceInfo.filePath(), QString::number(source_size)));
+    }
+    else
+    {
+        writeErrorLog(QString("↳ Can not open file %1").arg(sourceInfo.filePath()));
+        QMessageBox::critical(this, "Error", QString("Can not open file %1").arg(sourceInfo.filePath()));
+        return;
+    }
+
+    /* 创建块文件 */
+    QFile blockFile(ui->leBlockFile->text());
+    QFileInfo blockInfo;
+    QDataStream out;
+    if (blockFile.open(QIODevice::WriteOnly))
+    {
+        out.setDevice(&blockFile);
+        out.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
+        blockInfo.setFile(blockFile);
+
+        writeInfoLog(QString("↳ Successed create block file %1").arg(blockInfo.filePath()));
+    }
+    else
+    {
+        writeErrorLog(QString("↳ Can not create block file %1").arg(blockInfo.filePath()));
+        QMessageBox::critical(this, "Error", QString("Can not create block file %1").arg(blockInfo.filePath()));
+        return;
+    }
+
+    /* 获取读取的信息（块大小和算法） */
+    const size_t block_size = ui->cbBlockSize->currentText().toInt();  // 每个块的大小
+    const HashAlg alg = (HashAlg)ui->cbHashAlg->currentIndex();
+    writeInfoLog(QString("↳ Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
+
+    ui->lcdNumber->display((int)(sourceInfo.size() / block_size));
+
+    /* 开始读取 -> 计算哈希 -> 写入 */
+    QByteArray buf;
+    qint64 ptr_loc = 0;  // 读取指针目前所处的位置
+    unsigned int cur_block_size = 0;  // 本次读取块的大小（因为文件末尾最后块的大小有可能不是块大小的整数倍）
+    QByteArray buf_hash;
+    while (!in.atEnd())
+    {
+        buf = sourceFile.read(block_size);
+        cur_block_size = buf.size();  // 计算当前要写入的字节数，防止越界
+        ptr_loc += cur_block_size;    // 记录指针位置
+        buf_hash = getDataHash(buf, alg);  // 计算哈希
+        out << buf_hash;
+
+        writeInfoLog(QString("↳ Read: %1, Hash: %2, Pointer location: %3").arg(buf.toHex(), buf_hash.toHex(), QString::number(ptr_loc)));  // 输出读取的内容（十六进制格式显示）
+    }
+    blockFile.close();
+
+    /* 解锁按钮 */
+    setActivityWidget(true);
+}
+
 
 void MainWindow::selectSourceFile()
 {
@@ -471,7 +564,7 @@ void MainWindow::selectSourceFile()
     QFileInfo fileInfo(path);  // 使用 QFileInfo 解析路径
      // QString fileName = fileInfo.fileName(); // 获取源文件文件名
      // QString filePath = fileInfo.path();     // 获取去除文件名后的路径
-    QString blockFilePath = fileInfo.path().append(fileInfo.fileName()).append(".hbk");  // 重新构造文件名 hbk - Hash Block
+    QString blockFilePath = fileInfo.filePath().append(".hbk");  // 重新构造文件名 hbk - Hash Block
     ui->leBlockFile->setText(blockFilePath);
 
     return;

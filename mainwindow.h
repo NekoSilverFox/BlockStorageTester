@@ -55,7 +55,7 @@ private:
     Ui::MainWindow* ui;
 
     QString _host;
-    qint16 _port;
+    qint16  _port;
     QString _driver;
     QString _user;
     QString _password;

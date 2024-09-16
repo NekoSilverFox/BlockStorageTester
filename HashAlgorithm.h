@@ -6,6 +6,38 @@
 #include <QCryptographicHash>
 #include <QByteArray>
 
+enum HashAlg {
+    MD5,
+    SHA1,
+    SHA256,
+    SHA512
+};
+
+
+QByteArray getDataHash(const QByteArray& data, HashAlg alg)
+{
+    switch (alg) {
+    case HashAlg::MD5:
+        return QCryptographicHash::hash(data, QCryptographicHash::Md5);
+        break;
+
+    case HashAlg::SHA1:
+        return QCryptographicHash::hash(data, QCryptographicHash::Sha1);
+        break;
+
+    case HashAlg::SHA256:
+        return QCryptographicHash::hash(data, QCryptographicHash::Sha256);
+        break;
+
+    case HashAlg::SHA512:
+        return QCryptographicHash::hash(data, QCryptographicHash::Sha512);
+        break;
+
+    default:
+        break;
+    }
+}
+
 namespace Hash
 {
 

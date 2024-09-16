@@ -24,10 +24,13 @@ public:
     bool createDatabase(const QString& db);
     bool disconnectDatabase();
 
-    bool createTable();
-    bool insertNewRow(const QByteArray& hashValue, const QString& fileName, const int location);
-    int getHashRepeatTimes(const QByteArray& hashValue);
-    bool updateRow();
+    /*
+     * 数据库中数据表相关操作
+     */
+    bool createTable(const QString& tbName);
+    bool insertNewRow(const QString& tbName, const QByteArray& hashValue, const QString& fileName, const int location);
+    int getHashRepeatTimes(const QString& tbName, const QByteArray& hashValue);
+    bool updateCounter(const QString& tbName, const QByteArray& hashValue, int count);
 
     void writeInfoLog(const QString& msg);
     void writeWarningLog(const QString& msg);
@@ -39,9 +42,14 @@ public:
 
 private slots:
     void on_actionAbout_triggered();
+
+
     void autoConnectionDBModule();
+    void testBlockWritePerformanceModule();  // 测试分块写入性能
+
     void runTestModule();
     void selectSourceFile();
+    void selectBlockFile();
 
 private:
     Ui::MainWindow* ui;

@@ -35,12 +35,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnDisconnect, &QPushButton::clicked, this, &MainWindow::disconnectDatabase);
 
     connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
+    connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
 
     /* TODO 点击运行禁用按钮 */
-    connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){
-        // setActivityWidget(false);
-        createTable();
-    });
+    connect(ui->btnRunTest, &QPushButton::clicked, this, &MainWindow::testBlockWritePerformanceModule);
 
     loadSettings();
 }
@@ -204,37 +202,39 @@ bool MainWindow::createDatabase(const QString& db)
     }
 }
 
-bool MainWindow::createTable()
+bool MainWindow::createTable(const QString& tbName)
 {
+    writeInfoLog(QString("Create tabel `%1`").arg(tbName));
+
     QSqlQuery q;
-    QString sql = QString("CREATE TABLE tb_hash ("
+    QString sql = QString("CREATE TABLE %1 ("
                           "hash_value BYTEA NOT NULL,"
                           "file_name TEXT NOT NULL,"
                           "location INTEGER NOT NULL,"
-                          "counter NUMERIC(1000, 0) NOT NULL DEFAULT 1);");
+                          "counter NUMERIC(1000, 0) NOT NULL DEFAULT 1);").arg(tbName);
 
-    writeInfoLog("Create table `tb_hash`");
+    writeInfoLog(QString("Create table `%1`").arg(tbName));
     writeInfoLog(QString("\t-> Run SQL: %1").arg(sql));
 
     if (q.exec(sql))
     {
-        writeInfoLog("\t-> Successed table `tb_hash`");
+        writeInfoLog(QString("\t-> Successed table `%1`").arg(tbName));
         return true;
     }
 
-    writeErrorLog(QString("\t-> Failed to create table `tb_hash`: %1").arg(q.lastError().text()));
+    writeErrorLog(QString("\t-> Failed to create table `%1`: %2").arg(tbName, q.lastError().text()));
     return false;
 }
 
-bool MainWindow::insertNewRow(const QByteArray& hashValue, const QString& fileName, const int location)
+bool MainWindow::insertNewRow(const QString& tbName, const QByteArray& hashValue, const QString& fileName, const int location)
 {
-    writeInfoLog("Insert new row to tabel");
+    writeInfoLog(QString("Insert new row to tabel `%1`").arg(tbName));
     // 创建查询对象
     QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
 
     // 准备插入语句，使用参数绑定防止 SQL 注入
-    q.prepare("INSERT INTO tb_hash (hash_value, file_name, location, counter) "
-              "VALUES (:hash_value, :file_name, :location, :counter)");
+    q.prepare(QString("INSERT INTO %1 (hash_value, file_name, location, counter) "
+                      "VALUES (:hash_value, :file_name, :location, :counter)").arg(tbName));
 
     // 绑定参数
     q.bindValue(":hash_value", hashValue);  // 直接绑定 QByteArray
@@ -253,13 +253,15 @@ bool MainWindow::insertNewRow(const QByteArray& hashValue, const QString& fileNa
     return false;
 }
 
-int MainWindow::getHashRepeatTimes(const QByteArray &hashValue)
+int MainWindow::getHashRepeatTimes(const QString& tbName, const QByteArray &hashValue)
 {
+    writeInfoLog("Get hash repeat times");
+
     // 创建查询对象
     QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
 
     // 准备查询语句，查找相同的哈希值
-    q.prepare("SELECT counter FROM tb_hash WHERE hash_value = :hash_value");
+    q.prepare(QString("SELECT counter FROM %1 WHERE hash_value = :hash_value").arg(tbName));
 
     // 绑定哈希值参数
     q.bindValue(":hash_value", hashValue);
@@ -280,9 +282,41 @@ int MainWindow::getHashRepeatTimes(const QByteArray &hashValue)
     else
     {
         writeInfoLog("\t-> Find the same hash, repeat times: %1");
-        qDebug() << "Identical hash not found";
         return 0;  // 返回 0 表示没有找到重复的记录
     }
+}
+
+bool MainWindow::updateCounter(const QString& tbName, const QByteArray &hashValue, int count)
+{
+    writeInfoLog("Update counter");
+    // 创建查询对象
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
+
+    // 准备更新语句，更新指定哈希值对应的 counter
+    q.prepare(QString("UPDATE %1 SET counter = :counter WHERE hash_value = :hash_value").arg(tbName));
+
+    // 绑定参数
+    q.bindValue(":counter", count);
+    q.bindValue(":hash_value", hashValue);
+
+    // 执行更新
+    if (!q.exec()) {
+        writeErrorLog(QString("\t-> Update failure: %1").arg(q.lastError().text()));
+        return false;
+    }
+
+    // 检查是否有行受影响
+    if (q.numRowsAffected() > 0)
+    {
+        writeInfoLog(QString("\t-> Update successful! Number of rows affected: %1").arg(q.numRowsAffected()));
+        return true;
+    }
+    else
+    {
+        writeErrorLog("\t-> No matching hash found, update not performed");
+        return false;
+    }
+
 }
 
 bool MainWindow::disconnectDatabase()
@@ -431,6 +465,29 @@ void MainWindow::selectSourceFile()
         QMessageBox::warning(this, "Warning", "Do not selected any file!");
         return;
     }
+    ui->leSourceFile->setText(path);
+
+    /* 自动添加 block 文件路径 */
+    QFileInfo fileInfo(path);  // 使用 QFileInfo 解析路径
+     // QString fileName = fileInfo.fileName(); // 获取源文件文件名
+     // QString filePath = fileInfo.path();     // 获取去除文件名后的路径
+    QString blockFilePath = fileInfo.path().append(fileInfo.fileName()).append(".hbk");  // 重新构造文件名 hbk - Hash Block
+    ui->leBlockFile->setText(blockFilePath);
+
+    return;
+}
+
+void MainWindow::selectBlockFile()
+{
+    QString path = QFileDialog::getSaveFileName(this, "Save path of block file", QDir::homePath());
+    if (path.isEmpty())
+    {
+        QMessageBox::warning(this, "Warning", "Do not selected any file!");
+        return;
+    }
+    ui->leBlockFile->setText(path);
+
+    return;
 }
 
 /** 执行测试

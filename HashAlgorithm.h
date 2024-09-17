@@ -13,8 +13,13 @@ enum HashAlg {
     SHA512 = 3
 };
 
-
-QByteArray getDataHash(const QByteArray& data, HashAlg alg)
+/**
+ * @brief getDataHash
+ * @param data 数据
+ * @param alg 算法
+ * @return
+ */
+QByteArray getDataHash(const QByteArray& data, const HashAlg alg)
 {
     switch (alg) {
     case HashAlg::MD5:
@@ -32,6 +37,16 @@ QByteArray getDataHash(const QByteArray& data, HashAlg alg)
     default:
         break;
     }
+}
+
+/**
+ * @brief getHashSize 获取哈希算法计算后的哈希长度（Byte）
+ * @param alg 哈希算法
+ * @return
+ */
+size_t getHashSize(const HashAlg alg)
+{
+
 }
 
 namespace Hash

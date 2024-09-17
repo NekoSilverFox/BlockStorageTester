@@ -24,6 +24,7 @@ SOURCES += \
 
 
 HEADERS += \
+    BlockInfo.h \
     HashAlgorithm.h \
     mainwindow.h
 

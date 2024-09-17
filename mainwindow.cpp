@@ -217,7 +217,14 @@ bool MainWindow::createTable(const QString& tbName)
 {
     writeInfoLog(QString("Create tabel `%1`").arg(tbName));
 
-    QSqlQuery q;  // 数据段的哈希值，文件名，文件中的位置(第几byte)，此数据段的大小（byte），数据段的重复次数(默认为1)
+    QSqlQuery q;
+    /**
+     * hash_value   块的哈希值
+     * file_name    块所在的源文件
+     * location     块在文件中的位置（在第几字节开始）
+     * size         块的大小（Byte）
+     * counter      块的重复次数（计数器）
+     */
     QString sql = QString("CREATE TABLE %1 ("
                           "hash_value BYTEA NOT NULL,"
                           "file_name TEXT NOT NULL,"
@@ -567,10 +574,10 @@ void MainWindow::testBlockWritePerformanceModule()
     ui->lcdNumber->display((int)(sourceInfo.size() / block_size));
 
     /* 开始读取 -> 计算哈希 -> 写入 */
-    QByteArray buf;      // 读取的 buffer
+    QByteArray buf;      // 读取的源文件的 buffer
     qint64 ptr_loc = 0;  // 读取指针目前所处的位置
     unsigned int cur_block_size = 0;  // 本次读取块的大小（因为文件末尾最后块的大小有可能不是块大小的整数倍）
-    QByteArray buf_hash;
+    QByteArray buf_hash; // 存储当前哈希值
     size_t repeat_times = 0;
     unsigned int total_repeat_times = 0;
 
@@ -613,7 +620,6 @@ void MainWindow::testBlockWritePerformanceModule()
 #if !QT_NO_DEBUG
         qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, REpet times: %4").arg(buf.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
 #endif
-        // QThread::msleep(1);
     }
     blockFile.close();
     writeSuccLog("↳ Finish test writing performance");
@@ -663,5 +669,3 @@ void MainWindow::runTestModule()
 {
 
 }
-
-

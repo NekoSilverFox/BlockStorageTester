@@ -28,13 +28,15 @@ public:
      * 数据库中数据表相关操作
      */
     bool createTable(const QString& tbName);
-    bool insertNewRow(const QString& tbName, const QByteArray& hashValue, const QString& fileName, const int location);
+    bool insertNewRow(const QString& tbName, const QByteArray& hashValue, const QString& fileNameconst, int size, const int location);
     int getHashRepeatTimes(const QString& tbName, const QByteArray& hashValue);
     bool updateCounter(const QString& tbName, const QByteArray& hashValue, int count);
+    unsigned int getTableRowNumber(const QString& tbName);  // 获取表的行数 TODO
 
     void writeInfoLog(const QString& msg);
     void writeWarningLog(const QString& msg);
     void writeErrorLog(const QString& msg);
+    void writeSuccLog(const QString& msg);
 
     void setActivityWidget(const bool activity);
 
@@ -42,7 +44,6 @@ public:
 
 private slots:
     void on_actionAbout_triggered();
-
 
     void autoConnectionDBModule();
     void testBlockWritePerformanceModule();  // 测试分块写入性能

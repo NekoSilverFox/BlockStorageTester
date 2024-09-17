@@ -8,8 +8,12 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QFileDialog>
+#include <QTimer>
+#include <QThread>
 
 #include "HashAlgorithm.h"
+
+#define     ENABLE_LOG     0
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -39,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
     connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
 
-    /* TODO 点击运行禁用按钮 */
     connect(ui->btnRunTest, &QPushButton::clicked, this, &MainWindow::testBlockWritePerformanceModule);
 
     loadSettings();
@@ -89,7 +92,7 @@ void MainWindow::loadSettings()
     ui->cbBlockSize->setCurrentIndex(settings.value("cbBlockSize", 0).toInt());
     ui->cbHashAlg->setCurrentIndex(settings.value("cbHashAlg", 0).toInt());
 
-    writeInfoLog("Successed load settings");
+    writeSuccLog("Successed load settings");
 }
 
 // https://ru.stackoverflow.com/questions/1478871/qpsql-driver-not-found
@@ -109,7 +112,7 @@ bool MainWindow::connectDatabase(const QString& host, const int port, const QStr
     if (_curDB.open())
     {
         ui->lbDBConnected->setStyleSheet("color: green;");
-        writeInfoLog(QString("Successed connect to database %1 from %2:%3").arg(database, host, QString::number(port)));
+        writeSuccLog(QString("Successed connect to database %1 from %2:%3").arg(database, host, QString::number(port)));
         return true;
     }
     else
@@ -138,6 +141,12 @@ void MainWindow::writeErrorLog(const QString& msg)
 {
     ui->txbLog->setTextColor(Qt::red);
     ui->txbLog->append(QString("[ERROR] %1").arg(msg));
+}
+
+void MainWindow::writeSuccLog(const QString& msg)
+{
+    ui->txbLog->setTextColor(Qt::darkGreen);
+    ui->txbLog->append(QString("[INFO] %1").arg(msg));
 }
 
 /** 设置小部件的可操作性
@@ -194,7 +203,7 @@ bool MainWindow::createDatabase(const QString& db)
     bool succ = q.exec(sql);
     if (succ)
     {
-        writeInfoLog(QString("Successed create database `%1`").arg(db));
+        writeSuccLog(QString("Successed create database `%1`").arg(db));
         return true;
     }
     else
@@ -208,56 +217,66 @@ bool MainWindow::createTable(const QString& tbName)
 {
     writeInfoLog(QString("Create tabel `%1`").arg(tbName));
 
-    QSqlQuery q;
+    QSqlQuery q;  // 数据段的哈希值，文件名，文件中的位置(第几byte)，此数据段的大小（byte），数据段的重复次数(默认为1)
     QString sql = QString("CREATE TABLE %1 ("
                           "hash_value BYTEA NOT NULL,"
                           "file_name TEXT NOT NULL,"
-                          "location INTEGER NOT NULL,"
-                          "counter NUMERIC(1000, 0) NOT NULL DEFAULT 1);").arg(tbName);
+                          "location NUMERIC(1000, 0) NOT NULL,"
+                          "size INTEGER NOT NULL,"
+                          "counter INTEGER NOT NULL DEFAULT 1);").arg(tbName);
 
     writeInfoLog(QString("Create table `%1`").arg(tbName));
-    writeInfoLog(QString("\t-> Run SQL: %1").arg(sql));
+    writeInfoLog(QString("↳ Run SQL: %1").arg(sql));
 
     if (q.exec(sql))
     {
-        writeInfoLog(QString("\t-> Successed table `%1`").arg(tbName));
+        writeSuccLog(QString("↳ Successed create table `%1`").arg(tbName));
         return true;
     }
 
-    writeErrorLog(QString("\t-> Failed to create table `%1`: %2").arg(tbName, q.lastError().text()));
+    writeErrorLog(QString("↳ Failed to create table `%1`: %2").arg(tbName, q.lastError().text()));
     return false;
 }
 
-bool MainWindow::insertNewRow(const QString& tbName, const QByteArray& hashValue, const QString& fileName, const int location)
+
+bool MainWindow::insertNewRow(const QString& tbName, const QByteArray& hashValue, const QString& fileName, const int size, const int location)
 {
+#if !QT_NO_DEBUG
     writeInfoLog(QString("Insert new row to tabel `%1`").arg(tbName));
+#endif
+
     // 创建查询对象
     QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
 
     // 准备插入语句，使用参数绑定防止 SQL 注入
-    q.prepare(QString("INSERT INTO %1 (hash_value, file_name, location, counter) "
-                      "VALUES (:hash_value, :file_name, :location, :counter)").arg(tbName));
+    q.prepare(QString("INSERT INTO %1 (hash_value, file_name, location, size, counter) "
+                      "VALUES (:hash_value, :file_name, :location, :size, :counter)").arg(tbName));
 
     // 绑定参数
     q.bindValue(":hash_value", hashValue);  // 直接绑定 QByteArray
     q.bindValue(":file_name", fileName);
     q.bindValue(":location", location);
+    q.bindValue(":size", size);
     q.bindValue(":counter", 1);
 
     // 执行插入
     if (q.exec())
     {
-        writeInfoLog("\t-> Successed insert new row");
+#if !QT_NO_DEBUG
+        writeInfoLog("↳ Successed insert new row");
+#endif
         return true;
     }
 
-    writeErrorLog(QString("\t-> Failed to insert new row: %1").arg(q.lastError().text()));
+    writeErrorLog(QString("↳ Failed to insert new row: %1").arg(q.lastError().text()));
     return false;
 }
 
-int MainWindow::getHashRepeatTimes(const QString& tbName, const QByteArray &hashValue)
+int MainWindow::getHashRepeatTimes(const QString& tbName, const QByteArray& hashValue)
 {
+#if !QT_NO_DEBUG
     writeInfoLog("Get hash repeat times");
+#endif
 
     // 创建查询对象
     QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
@@ -270,7 +289,7 @@ int MainWindow::getHashRepeatTimes(const QString& tbName, const QByteArray &hash
 
     // 执行查询
     if (!q.exec()) {
-        writeErrorLog((QString("\t-> Failed to get HashRepeatTimes: %1").arg(q.lastError().text())));
+        writeErrorLog((QString("↳ Failed to get HashRepeatTimes: %1").arg(q.lastError().text())));
         return -1;  // 返回 -1 表示查询失败
     }
 
@@ -278,19 +297,25 @@ int MainWindow::getHashRepeatTimes(const QString& tbName, const QByteArray &hash
     if (q.next())
     {
         int counter = q.value(0).toInt();  // 获取重复次数
-        writeInfoLog(QString("\t-> Find the same hash, repeat times: %1").arg(counter));
+#if !QT_NO_DEBUG
+        writeInfoLog(QString("↳ Find the same hash, repeat times: %1").arg(counter));
+#endif
         return counter;
     }
     else
     {
-        writeInfoLog("\t-> Find the same hash, repeat times: %1");
+#if !QT_NO_DEBUG
+        writeInfoLog("↳ Do not have same hash");
+#endif
         return 0;  // 返回 0 表示没有找到重复的记录
     }
 }
 
 bool MainWindow::updateCounter(const QString& tbName, const QByteArray &hashValue, int count)
 {
+#if !QT_NO_DEBUG
     writeInfoLog("Update counter");
+#endif
     // 创建查询对象
     QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
 
@@ -303,19 +328,22 @@ bool MainWindow::updateCounter(const QString& tbName, const QByteArray &hashValu
 
     // 执行更新
     if (!q.exec()) {
-        writeErrorLog(QString("\t-> Update failure: %1").arg(q.lastError().text()));
+        writeErrorLog(QString("↳ Update failure: %1").arg(q.lastError().text()));
         return false;
     }
 
     // 检查是否有行受影响
     if (q.numRowsAffected() > 0)
     {
-        writeInfoLog(QString("\t-> Update successful! Number of rows affected: %1").arg(q.numRowsAffected()));
+#if !QT_NO_DEBUG
+        writeInfoLog(QString("↳ Update successful! Number of rows affected: %1").arg(q.numRowsAffected()));
+#endif
         return true;
+
     }
     else
     {
-        writeErrorLog("\t-> No matching hash found, update not performed");
+        writeErrorLog("↳ No matching hash found, update failed");
         return false;
     }
 
@@ -493,7 +521,7 @@ void MainWindow::testBlockWritePerformanceModule()
         sourceInfo.setFile(sourceFile);
         source_size = sourceInfo.size();
 
-        writeInfoLog(QString("↳ Successed open file %1, size %2 Bytes").arg(sourceInfo.filePath(), QString::number(source_size)));
+        writeSuccLog(QString("↳ Successed open file %1, size %2 Bytes").arg(sourceInfo.filePath(), QString::number(source_size)));
     }
     else
     {
@@ -512,7 +540,7 @@ void MainWindow::testBlockWritePerformanceModule()
         out.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
         blockInfo.setFile(blockFile);
 
-        writeInfoLog(QString("↳ Successed create block file %1").arg(blockInfo.filePath()));
+        writeSuccLog(QString("↳ Successed create block file %1").arg(blockInfo.filePath()));
     }
     else
     {
@@ -526,24 +554,69 @@ void MainWindow::testBlockWritePerformanceModule()
     const HashAlg alg = (HashAlg)ui->cbHashAlg->currentIndex();
     writeInfoLog(QString("↳ Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
 
+    /* 创建表 */
+    QString tb_name = QString("tb_%1Bytes_%2").arg(QString::number(block_size), ui->cbHashAlg->currentText()).toLower();
+    if (!createTable(tb_name))
+    {
+        QMessageBox::critical(this, "Error", QString("Failed create table %1").arg(tb_name));
+        writeErrorLog(QString("Failed create table %1").arg(tb_name));
+        return;
+    }
+    ui->tbName->setText(tb_name);
+
     ui->lcdNumber->display((int)(sourceInfo.size() / block_size));
 
     /* 开始读取 -> 计算哈希 -> 写入 */
-    QByteArray buf;
+    QByteArray buf;      // 读取的 buffer
     qint64 ptr_loc = 0;  // 读取指针目前所处的位置
     unsigned int cur_block_size = 0;  // 本次读取块的大小（因为文件末尾最后块的大小有可能不是块大小的整数倍）
     QByteArray buf_hash;
+    size_t repeat_times = 0;
+    unsigned int total_repeat_times = 0;
+
+    QTimer timer;
+    connect(&timer, &QTimer::timeout, this, [=](){
+        writeInfoLog(QString("Testing writing performance %1%").arg(ptr_loc / sourceInfo.size() * 100));
+    });
+    timer.start(10);  // 启动定时器，参数为毫秒 ms
+    QThread::msleep(100);
     while (!in.atEnd())
     {
         buf = sourceFile.read(block_size);
-        cur_block_size = buf.size();  // 计算当前要写入的字节数，防止越界
-        ptr_loc += cur_block_size;    // 记录指针位置
+        cur_block_size = buf.size();  // 计算当前读取的字节数，防止越界
         buf_hash = getDataHash(buf, alg);  // 计算哈希
-        out << buf_hash;
 
-        writeInfoLog(QString("↳ Read: %1, Hash: %2, Pointer location: %3").arg(buf.toHex(), buf_hash.toHex(), QString::number(ptr_loc)));  // 输出读取的内容（十六进制格式显示）
+        /* 写入数据库 */
+        repeat_times = getHashRepeatTimes(tb_name, buf_hash);
+        if (0 == repeat_times)
+        {
+            insertNewRow(tb_name, buf_hash, sourceInfo.filePath(), cur_block_size, ptr_loc);
+
+#if !QT_NO_DEBUG
+            qDebug() << "Insert new row";
+#endif
+
+        }
+        else
+        {
+            ++total_repeat_times;
+            updateCounter(tb_name, buf_hash, (repeat_times + 1));
+#if !QT_NO_DEBUG
+            qDebug() << "↳ Hash repete!";
+#endif
+            ui->lcdRepeatTimes->display(QString("%1  Per:%2").arg(total_repeat_times, total_repeat_times / (source_size / block_size)));
+        }
+
+        out << buf_hash;
+        ptr_loc += cur_block_size;    // 记录指针位置
+
+#if !QT_NO_DEBUG
+        qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, REpet times: %4").arg(buf.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
+#endif
+        // QThread::msleep(1);
     }
     blockFile.close();
+    writeSuccLog("↳ Finish test writing performance");
 
     /* 解锁按钮 */
     setActivityWidget(true);

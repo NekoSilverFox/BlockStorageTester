@@ -46,7 +46,7 @@ QByteArray getDataHash(const QByteArray& data, const HashAlg alg)
  */
 size_t getHashSize(const HashAlg alg)
 {
-
+    return 0;
 }
 
 namespace Hash

@@ -19,12 +19,14 @@ LIBS += -L/opt/homebrew/opt/libpq/lib -lpq
 
 # 添加所有 .cpp 源码文件到项目中
 SOURCES += \
+    DatabaseService.cpp \
     main.cpp \
     mainwindow.cpp
 
 
 HEADERS += \
     BlockInfo.h \
+    DatabaseService.h \
     HashAlgorithm.h \
     mainwindow.h
 

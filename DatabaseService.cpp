@@ -56,12 +56,12 @@ bool DatabaseService::connectDatabase(const QString& host, const int port, const
 
     if (_db.open())
     {
-        _last_msg = QString("Successed connect to database %1 from %2:%3").arg(_name_db, _host, QString::number(_port));
+        _last_log = QString("Successed connect to database %1 from %2:%3").arg(_name_db, _host, QString::number(_port));
         return true;
     }
     else
     {
-        _last_msg = QString("Cannot connect to datebase %1 from %2:%3").arg(_name_db, _host, QString::number(_port));
+        _last_log = QString("Cannot connect to datebase %1 from %2:%3").arg(_name_db, _host, QString::number(_port));
         return false;
     }
 }
@@ -75,13 +75,13 @@ bool DatabaseService::isDatabaseOpen()
 {
     if (_db.isValid() && _db.open())
     {
-        _last_msg = "Database connected successfully!";
+        _last_log = "Database connected successfully!";
         return true;
     }
     else
     {
         // 如果连接失败，输出错误信息
-        _last_msg = QString("Database connection failed: %1").arg(_db.lastError().text());
+        _last_log = QString("Database connection failed: %1").arg(_db.lastError().text());
         return false;
     }
 }
@@ -100,18 +100,19 @@ bool DatabaseService::isDatabaseExist(const QString& database)
     }
 
     QString sql = QString("SELECT 1 FROM pg_database WHERE datname = '%1';").arg(database);
+    _last_sql = sql;
     QSqlQuery q(sql);
     qDebug() << QString("Run SQL: %1").arg(sql);
 
     q.next();
     if (q.value(0) == 1)
     {
-        _last_msg = QString("Database `%1` exist").arg(database);
+        _last_log = QString("Database `%1` exist").arg(database);
         q.clear();
         return true;
     }
 
-    _last_msg = QString("Database `%1` do not exist").arg(database);
+    _last_log = QString("Database `%1` do not exist").arg(database);
     q.clear();
     return false;
 }
@@ -130,18 +131,19 @@ bool DatabaseService::createDatabase(const QString& database)
     }
 
     QString sql = QString("CREATE DATABASE \"%1\";").arg(database);
+    _last_sql = sql;
     QSqlQuery q;
     qDebug() << QString("Run SQL: %1").arg(sql);
 
     bool succ = q.exec(sql);
     if (succ)
     {
-        _last_msg  = QString("Successed create database `%1`").arg(database);
+        _last_log  = QString("Successed create database `%1`").arg(database);
         return true;
     }
     else
     {
-        _last_msg = QString("Failed to create database `%1`: %2").arg(database, q.lastError().text());
+        _last_log = QString("Failed to create database `%1`: %2").arg(database, q.lastError().text());
         return false;
     }
 }
@@ -159,7 +161,7 @@ bool DatabaseService::dropCurDatabase()
 
     if (_name_db.isEmpty())
     {
-        _last_msg = "Can not remove default database (database name is empty)";
+        _last_log = "Can not remove default database (database name is empty)";
         return false;
     }
 
@@ -170,15 +172,16 @@ bool DatabaseService::dropCurDatabase()
 
     QSqlQuery q;
     QString sql = QString("DROP DATABASE \"%1\";").arg(drop_db_name);
+    _last_sql = sql;
     bool succ = q.exec(sql);
     if (succ)
     {
-        _last_msg = QString("Successed drop current database `%1`").arg(drop_db_name);
+        _last_log = QString("Successed drop current database `%1`").arg(drop_db_name);
         return true;
     }
     else
     {
-        _last_msg =  QString("Failed drop current database `%1`:, %2").arg(drop_db_name, _db.lastError().text());
+        _last_log =  QString("Failed drop current database `%1`:, %2").arg(drop_db_name, _db.lastError().text());
         return false;
     }
 }
@@ -191,23 +194,231 @@ bool DatabaseService::dropCurDatabase()
 bool DatabaseService::disconnectCurDatabase()
 {
     // 检查数据库连接是否有效并已打开
-    if (_db.isValid() && _db.open())
+    if (isDatabaseOpen())
     {
         _db.close();
         _db = QSqlDatabase(); // 将 _curDB 重置为空，以解除与实际数据库连接的关联
         QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
 
-        _last_msg = QString("Disconnect database %1").arg(_db.databaseName());
+        _last_log = QString("Disconnect database %1").arg(_db.databaseName());
         return true;
     }
 
-    _last_msg = QString("Failed disconnect database %1: %2").arg(_db.databaseName(), _db.lastError().text());
+    _last_log = QString("Failed disconnect database %1: %2").arg(_db.databaseName(), _db.lastError().text());
     return false;
 }
 
-QString DatabaseService::lastMsg()
+/**
+ * @brief DatabaseService::createTable 在当前连接的数据库中创建指定名称的块信息表
+ * @param tbName 要创建的表名
+ * @return 是否成功创建
+ */
+bool DatabaseService::createBlockInfoTable(const QString& tbName)
 {
-    return _last_msg;
+    if (!isDatabaseOpen())
+    {
+        return false;
+    }
+
+    QSqlQuery q;
+    /**
+     * block_hash           块的哈希值
+     * source_file_path     块所在的源文件 TODO 确认这里都改了
+     * block_loc            块在源文件中的位置 location（在第几字节开始）
+     * block_size           块的大小（Byte）
+     * counter              块的重复次数（计数器）
+     */
+    QString sql = QString("CREATE TABLE %1 ("
+                          "block_hash BYTEA NOT NULL,"
+                          "source_file_path TEXT NOT NULL,"
+                          "block_loc NUMERIC(1000, 0) NOT NULL,"
+                          "block_size INTEGER NOT NULL,"
+                          "counter INTEGER NOT NULL DEFAULT 1);").arg(tbName);
+    _last_sql = sql;
+    qDebug() << QString("Create table `%1`").arg(tbName);
+    qDebug() << QString("↳ Run SQL: %1").arg(sql);
+
+    if (q.exec(sql))
+    {
+        _last_log = QString("Successed create table `%1`").arg(tbName);
+        return true;
+    }
+
+    _last_log = QString("Failed to create table `%1`: %2").arg(tbName, q.lastError().text());
+    return false;
+}
+
+
+/**
+ * @brief DatabaseService::insertNewBlockInfoRow 插入新的块信息行
+ * @param tbName 表名
+ * @param blockHash 块的哈希值
+ * @param sourceFilePath 源文件路径
+ * @param blockLoc 块在源文件中的位置（第几字节）
+ * @param blockSize 块的大小（Byte）
+ * @return
+ */
+bool DatabaseService::insertNewBlockInfoRow(const QString& tbName, const QByteArray& blockHash,
+                                            const QString& sourceFilePath, const int blockLoc, const int blockSize) ///TODO 注意这里参数位置变了
+{
+    if (!isDatabaseOpen())
+    {
+        return false;
+    }
+
+    // 创建查询对象
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
+
+    // 准备插入语句，使用参数绑定防止 SQL 注入
+    QString sql = QString("INSERT INTO %1 (block_hash, source_file_path, block_loc, block_size, counter) "
+                          "VALUES (:block_hash, :source_file_path, :block_loc, :block_size, :counter)").arg(tbName);
+    _last_sql = sql;
+    q.prepare(sql);
+
+    // 绑定参数
+    q.bindValue(":block_hash", blockHash);  // 直接绑定 QByteArray
+    q.bindValue(":source_file_path", sourceFilePath);
+    q.bindValue(":block_loc", blockLoc);
+    q.bindValue(":block_size", blockSize);
+    q.bindValue(":counter", 1);
+
+    // 执行插入
+    if (q.exec())
+    {
+        _last_log = QString("Successed insert new row to table %1").arg(tbName);
+        return true;
+    }
+
+    _last_log = QString("Failed to insert new row to table %1: %2").arg(tbName, q.lastError().text());
+    return false;
+}
+
+
+/**
+ * @brief DatabaseService::getHashRepeatTimes 获取该哈希值在表中的重复次数
+ * @param tbName 表名
+ * @param blockHash 哈希值
+ * @return 重复次数：-1 表示查询失败，否则为重复次数
+ */
+int DatabaseService::getHashRepeatTimes(const QString& tbName, const QByteArray& blockHash)
+{
+    if (!isDatabaseOpen())
+    {
+        return false;
+    }
+
+    // 创建查询对象
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
+
+    // 准备查询语句，查找相同的哈希值
+    QString sql = QString("SELECT counter FROM %1 WHERE block_hash = :block_hash").arg(tbName);
+    _last_sql = sql;
+    q.prepare(sql);
+
+    // 绑定哈希值参数
+    q.bindValue(":block_hash", blockHash);
+
+    // 执行查询
+    if (!q.exec()) {
+        _last_log = QString("Failed to get HashRepeatTimes: %1").arg(q.lastError().text());
+        return -1;  // 返回 -1 表示查询失败
+    }
+
+    // 检查是否存在结果
+    if (q.next())
+    {
+        int counter = q.value(0).toInt();  // 获取重复次数
+        _last_log = QString("Find the same hash, repeat times: %1").arg(counter);
+        return counter;
+    }
+    else
+    {
+        _last_log = "Do not have same hash";
+        return 0;  // 返回 0 表示没有找到重复的记录
+    }
+}
+
+/**
+ * @brief DatabaseService::updateCounter 更新表的 counter 字段（哈希值重复次数）
+ * @param tbName 表名
+ * @param blockHash 块的哈希值
+ * @param count 新的重复次数
+ * @return 是否更新成功
+ */
+bool DatabaseService::updateCounter(const QString& tbName, const QByteArray &blockHash, int count)
+{
+    if (!isDatabaseOpen())
+    {
+        return false;
+    }
+
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
+
+    QString sql = QString("UPDATE %1 SET counter = :counter WHERE block_hash = :block_hash").arg(tbName);
+    q.prepare(sql);
+
+    q.bindValue(":counter", count);
+    q.bindValue(":block_hash", blockHash);
+
+    // 执行更新
+    if (!q.exec()) {
+        _last_log = QString("Update failure: %1").arg(q.lastError().text());
+        return false;
+    }
+
+    // 检查是否有行受影响
+    if (q.numRowsAffected() > 0)
+    {
+        _last_log = QString("Update successful! Number of rows affected: %1").arg(q.numRowsAffected());
+        return true;
+    }
+    else
+    {
+        _last_log = "No matching hash found, update failed";
+        return false;
+    }
+}
+
+
+/**
+ * @brief DatabaseService::getTableRowCount 获取表有多少条记录
+ * @param tbName 表名
+ * @return 行数（负数代表异常）
+ */
+int DatabaseService::getTableRowCount(const QString& tbName)
+{
+    if (!isDatabaseOpen())
+    {
+        return -1;
+    }
+    QString sql = QString("SELECT COUNT(*) FROM %1").arg(tbName);
+    QSqlQuery q;
+
+    if (!q.exec(sql))
+    {
+        _last_log = QString("Failed get row count of table `%1`: %2").arg(tbName, q.lastError().text());
+        return -2;
+    }
+
+    if (q.next())
+    {
+        int rowCount = q.value(0).toInt(); // 获取 COUNT(*) 的结果
+        _last_log = QString("Successed get row count of table `%1`, COUNT = %2").arg(tbName, rowCount);
+        return rowCount;
+    }
+
+    return 0;
+}
+
+
+QString DatabaseService::lastSQL()
+{
+    return _last_sql;
+}
+
+QString DatabaseService::lastLog()
+{
+    return _last_log;
 }
 
 QString DatabaseService::getHost()

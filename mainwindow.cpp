@@ -26,8 +26,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     /* 初始化 */
-    writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
     writeInfoLog("Start init");
+    writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
 
     setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lbDBConnected->setStyleSheet("color: red;");
     ui->lbDBUsing->setStyleSheet("color: red;");
 
+    _cur_tb = "";
     _dbs = new DatabaseService(this);
     _isFinalConnDB = false;
 
@@ -110,11 +111,11 @@ void MainWindow::disconnectCurDBandSetUi()
         _isFinalConnDB = false;
         ui->lbDBUsing->setStyleSheet("color: red;");
         ui->lbDBConnected->setStyleSheet("color: red;");
-        writeInfoLog(_dbs->lastMsg());
+        writeInfoLog(_dbs->lastLog());
     }
     else
     {
-        writeWarningLog(_dbs->lastMsg());
+        writeWarningLog(_dbs->lastLog());
     }
 }
 
@@ -167,148 +168,11 @@ void MainWindow::setActivityWidget(const bool activity)
     ui->btnRunTest->setEnabled(activity);
 }
 
-bool MainWindow::createTable(const QString& tbName)
-{
-    writeInfoLog(QString("Create tabel `%1`").arg(tbName));
-
-    QSqlQuery q;
-    /**
-     * hash_value   块的哈希值
-     * file_name    块所在的源文件
-     * location     块在文件中的位置（在第几字节开始）
-     * size         块的大小（Byte）
-     * counter      块的重复次数（计数器）
-     */
-    QString sql = QString("CREATE TABLE %1 ("
-                          "hash_value BYTEA NOT NULL,"
-                          "file_name TEXT NOT NULL,"
-                          "location NUMERIC(1000, 0) NOT NULL,"
-                          "size INTEGER NOT NULL,"
-                          "counter INTEGER NOT NULL DEFAULT 1);").arg(tbName);
-
-    writeInfoLog(QString("Create table `%1`").arg(tbName));
-    writeInfoLog(QString("↳ Run SQL: %1").arg(sql));
-
-    if (q.exec(sql))
-    {
-        writeSuccLog(QString("↳ Successed create table `%1`").arg(tbName));
-        return true;
-    }
-
-    writeErrorLog(QString("↳ Failed to create table `%1`: %2").arg(tbName, q.lastError().text()));
-    return false;
-}
 
 
-bool MainWindow::insertNewRow(const QString& tbName, const QByteArray& hashValue, const QString& fileName, const int size, const int location)
-{
-#if !QT_NO_DEBUG
-    writeInfoLog(QString("Insert new row to tabel `%1`").arg(tbName));
-#endif
 
-    // 创建查询对象
-    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
 
-    // 准备插入语句，使用参数绑定防止 SQL 注入
-    q.prepare(QString("INSERT INTO %1 (hash_value, file_name, location, size, counter) "
-                      "VALUES (:hash_value, :file_name, :location, :size, :counter)").arg(tbName));
 
-    // 绑定参数
-    q.bindValue(":hash_value", hashValue);  // 直接绑定 QByteArray
-    q.bindValue(":file_name", fileName);
-    q.bindValue(":location", location);
-    q.bindValue(":size", size);
-    q.bindValue(":counter", 1);
-
-    // 执行插入
-    if (q.exec())
-    {
-#if !QT_NO_DEBUG
-        writeInfoLog("↳ Successed insert new row");
-#endif
-        return true;
-    }
-
-    writeErrorLog(QString("↳ Failed to insert new row: %1").arg(q.lastError().text()));
-    return false;
-}
-
-int MainWindow::getHashRepeatTimes(const QString& tbName, const QByteArray& hashValue)
-{
-#if !QT_NO_DEBUG
-    writeInfoLog("Get hash repeat times");
-#endif
-
-    // 创建查询对象
-    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
-
-    // 准备查询语句，查找相同的哈希值
-    q.prepare(QString("SELECT counter FROM %1 WHERE hash_value = :hash_value").arg(tbName));
-
-    // 绑定哈希值参数
-    q.bindValue(":hash_value", hashValue);
-
-    // 执行查询
-    if (!q.exec()) {
-        writeErrorLog((QString("↳ Failed to get HashRepeatTimes: %1").arg(q.lastError().text())));
-        return -1;  // 返回 -1 表示查询失败
-    }
-
-    // 检查是否存在结果
-    if (q.next())
-    {
-        int counter = q.value(0).toInt();  // 获取重复次数
-#if !QT_NO_DEBUG
-        writeInfoLog(QString("↳ Find the same hash, repeat times: %1").arg(counter));
-#endif
-        return counter;
-    }
-    else
-    {
-#if !QT_NO_DEBUG
-        writeInfoLog("↳ Do not have same hash");
-#endif
-        return 0;  // 返回 0 表示没有找到重复的记录
-    }
-}
-
-bool MainWindow::updateCounter(const QString& tbName, const QByteArray &hashValue, int count)
-{
-#if !QT_NO_DEBUG
-    writeInfoLog("Update counter");
-#endif
-    // 创建查询对象
-    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
-
-    // 准备更新语句，更新指定哈希值对应的 counter
-    q.prepare(QString("UPDATE %1 SET counter = :counter WHERE hash_value = :hash_value").arg(tbName));
-
-    // 绑定参数
-    q.bindValue(":counter", count);
-    q.bindValue(":hash_value", hashValue);
-
-    // 执行更新
-    if (!q.exec()) {
-        writeErrorLog(QString("↳ Update failure: %1").arg(q.lastError().text()));
-        return false;
-    }
-
-    // 检查是否有行受影响
-    if (q.numRowsAffected() > 0)
-    {
-#if !QT_NO_DEBUG
-        writeInfoLog(QString("↳ Update successful! Number of rows affected: %1").arg(q.numRowsAffected()));
-#endif
-        return true;
-
-    }
-    else
-    {
-        writeErrorLog("↳ No matching hash found, update failed");
-        return false;
-    }
-
-}
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
@@ -316,7 +180,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
     if (ui->cbAutoDropDB->isChecked() && _isFinalConnDB && _dbs->isDatabaseOpen())
     {
         _dbs->dropCurDatabase();
-        qDebug() << _dbs->lastMsg();
+        qDebug() << _dbs->lastLog();
     }
 
     disconnectCurDBandSetUi();
@@ -375,13 +239,13 @@ void MainWindow::autoConnectionDBModule()
     if (isSucc)
     {
         ui->lbDBConnected->setStyleSheet("color: green;");
-        writeSuccLog(_dbs->lastMsg());
+        writeSuccLog(_dbs->lastLog());
     }
     else
     {
         ui->lbDBConnected->setStyleSheet("color: red;");
-        writeErrorLog(_dbs->lastMsg());
-        QMessageBox::warning(this, "DB Connect failed", _dbs->lastMsg());
+        writeErrorLog(_dbs->lastLog());
+        QMessageBox::warning(this, "DB Connect failed", _dbs->lastLog());
         return;
     }
 
@@ -403,12 +267,12 @@ void MainWindow::autoConnectionDBModule()
             bool succ = _dbs->createDatabase(dbName);
             if (succ)
             {
-                writeSuccLog(_dbs->lastMsg());
+                writeSuccLog(_dbs->lastLog());
             }
             else
             {
-                writeErrorLog(_dbs->lastMsg());
-                QMessageBox::critical(this, "Error", _dbs->lastMsg());
+                writeErrorLog(_dbs->lastLog());
+                QMessageBox::critical(this, "Error", _dbs->lastLog());
                 return;
             }
         }
@@ -431,12 +295,12 @@ void MainWindow::autoConnectionDBModule()
     {
         ui->lbDBConnected->setStyleSheet("color: green;");
         ui->lbDBUsing->setStyleSheet("color: green;");
-        writeSuccLog(_dbs->lastMsg());
-        QMessageBox::information(this, "Success connected", _dbs->lastMsg());
+        writeSuccLog(_dbs->lastLog());
+        QMessageBox::information(this, "Success connected", _dbs->lastLog());
     }
     else
     {
-        writeErrorLog(_dbs->lastMsg())
+        writeErrorLog(_dbs->lastLog());
     }
 }
 
@@ -510,22 +374,25 @@ void MainWindow::testBlockWritePerformanceModule()
     writeInfoLog(QString("↳ Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
 
     /* 创建表 */
-    QString tb_name = QString("tb_%1Bytes_%2").arg(QString::number(block_size), ui->cbHashAlg->currentText()).toLower();
-    if (!createTable(tb_name))
+    _cur_tb = QString("tb_%1bytes_%2").arg(QString::number(block_size), ui->cbHashAlg->currentText()).toLower();
+    writeInfoLog(QString("Create table `%1`").arg(_cur_tb));
+    bool isSucc = _dbs->createBlockInfoTable(_cur_tb);
+    writeInfoLog(QString("↳ Run SQL `%1`").arg(_dbs->lastSQL()));
+    if (!isSucc)
     {
-        QMessageBox::critical(this, "Error", QString("Failed create table %1").arg(tb_name));
-        writeErrorLog(QString("Failed create table %1").arg(tb_name));
+        writeErrorLog(_dbs->lastLog());
+        QMessageBox::critical(this, "Error", _dbs->lastLog());
         return;
     }
-    ui->tbName->setText(tb_name);
-
+    writeSuccLog(_dbs->lastLog());
+    ui->tbName->setText(_cur_tb);  ///TODO
     ui->lcdNumber->display((int)(sourceInfo.size() / block_size));
 
     /* 开始读取 -> 计算哈希 -> 写入 */
-    QByteArray buf;      // 读取的源文件的 buffer
-    qint64 ptr_loc = 0;  // 读取指针目前所处的位置
+    QByteArray buf_block;       // 读取的源文件的 buffer（用来暂存当前块）
+    qint64 ptr_loc = 0;         // 读取指针目前所处的位置
     unsigned int cur_block_size = 0;  // 本次读取块的大小（因为文件末尾最后块的大小有可能不是块大小的整数倍）
-    QByteArray buf_hash; // 存储当前哈希值
+    QByteArray buf_hash;        // 存储当前块的哈希值
     size_t repeat_times = 0;
     unsigned int total_repeat_times = 0;
 
@@ -535,39 +402,35 @@ void MainWindow::testBlockWritePerformanceModule()
     });
     timer.start(10);  // 启动定时器，参数为毫秒 ms
     QThread::msleep(100);
+
     while (!in.atEnd())
     {
-        buf = sourceFile.read(block_size);
-        cur_block_size = buf.size();  // 计算当前读取的字节数，防止越界
-        buf_hash = getDataHash(buf, alg);  // 计算哈希
+        buf_block = sourceFile.read(block_size);
+        cur_block_size = buf_block.size();  // 计算当前读取的字节数，防止越界
+        buf_hash = getDataHash(buf_block, alg);  // 计算哈希
 
         /* 写入数据库 */
-        repeat_times = getHashRepeatTimes(tb_name, buf_hash);
-        if (0 == repeat_times)
-        {
-            insertNewRow(tb_name, buf_hash, sourceInfo.filePath(), cur_block_size, ptr_loc);
-
+        repeat_times = _dbs->getHashRepeatTimes(_cur_tb, buf_hash);
 #if !QT_NO_DEBUG
-            qDebug() << "Insert new row";
+        qDebug() << _dbs->lastLog();
 #endif
-
+        if (0 == repeat_times)  // 重复次数为 0 说明没有记录过当前哈希
+        {
+            _dbs->insertNewBlockInfoRow(_cur_tb, buf_hash, sourceInfo.filePath(), ptr_loc, cur_block_size);
         }
         else
         {
             ++total_repeat_times;
-            updateCounter(tb_name, buf_hash, (repeat_times + 1));
-#if !QT_NO_DEBUG
-            qDebug() << "↳ Hash repete!";
-#endif
+            _dbs->updateCounter(_cur_tb, buf_hash, (repeat_times + 1));
             ui->lcdRepeatTimes->display(QString("%1  Per:%2").arg(total_repeat_times, total_repeat_times / (source_size / block_size)));
         }
-
-        out << buf_hash;
-        ptr_loc += cur_block_size;    // 记录指针位置
-
 #if !QT_NO_DEBUG
-        qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, REpet times: %4").arg(buf.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
+        qDebug() << _dbs->lastLog();
+        qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, Repet times: %4/n").arg(
+            buf_block.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
 #endif
+        out << buf_hash;           // 记录哈希到文件
+        ptr_loc += cur_block_size; // 移动指针位置
     }
     blockFile.close();
     writeSuccLog("↳ Finish test writing performance");

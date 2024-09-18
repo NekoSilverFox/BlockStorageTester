@@ -11,6 +11,7 @@ public:
     explicit DatabaseService(QObject *parent = nullptr);
     ~DatabaseService();
 
+    /* 数据库相关操作 */
     bool connectDatabase(const QString& host, const int port, const QString& driver,
                          const QString& user, const QString& pwd, const QString& database);
     bool isDatabaseOpen();
@@ -19,6 +20,15 @@ public:
     bool dropCurDatabase();
     bool disconnectCurDatabase();
 
+    /* 表相关操作 */
+    bool createBlockInfoTable(const QString& tbName);
+    bool insertNewBlockInfoRow(const QString& tbName, const QByteArray& blockHash,
+                               const QString& sourceFilePath, const int blockLoc, const int blockSize);
+    int getHashRepeatTimes(const QString& tbName, const QByteArray& blockHash);
+    bool updateCounter(const QString& tbName, const QByteArray& blockHash, int count);
+    int getTableRowCount(const QString& tbName);
+
+    /* getter 方法*/
     QString getHost();
     qint16  getPort();
     QString getDriver();
@@ -26,9 +36,12 @@ public:
     QString getPassword();
     QString getNameDatabase();
 
-    QString lastMsg();
+    /* 日志相关 */
+    QString lastSQL();
+    QString lastLog();
 
 signals:
+
 
 private:
     QSqlDatabase _db;   // 连接 & 管理的数据库对象
@@ -40,7 +53,8 @@ private:
     QString _password;
     QString _name_db;
 
-    QString _last_msg;  // 最后记录的日志消息
+    QString _last_sql;  // 最后执行的 SQL 语句
+    QString _last_log;  // 最后记录的日志消息
 
 };
 

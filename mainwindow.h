@@ -33,14 +33,6 @@ private:
     /* 数据库 & 数据表相关操作 */
     void disconnectCurDBandSetUi();
 
-    bool createTable(const QString& tbName);
-    bool insertNewRow(const QString& tbName, const QByteArray& hashValue, const QString& fileNameconst, int size, const int location);
-    int getHashRepeatTimes(const QString& tbName, const QByteArray& hashValue);
-    bool updateCounter(const QString& tbName, const QByteArray& hashValue, int count);
-    unsigned int getTableRowNumber(const QString& tbName);  // 获取表的行数 TODO
-
-    void closeEvent(QCloseEvent* event) override;
-
 private slots:
     void setActivityWidget(const bool activity);
 
@@ -48,14 +40,17 @@ private slots:
     void testBlockWritePerformanceModule();  // 测试分块写入性能
 
     void aboutThisProject();
-    void runTestModule();
     void selectSourceFile();
     void selectBlockFile();
+    void runTestModule();
+
+    void closeEvent(QCloseEvent* event) override;
 
 private:
     Ui::MainWindow* ui;
 
     DatabaseService* _dbs; // 当前操作的数据库对象
+    QString _cur_tb;       // 当前正在操作的表名
     bool _isFinalConnDB;   // 最终成功连接到数据库
 
 };

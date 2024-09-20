@@ -20,7 +20,7 @@ public:
                          const QString& user, const QString& pwd, const QString& database);
     void disconnectCurrentDatabase();
     void dropCurrentDatabase();
-    void finishCompute(const bool drop_db);
+    void finishJob(const bool drop_db);
 
 
 signals:
@@ -41,7 +41,7 @@ signals:
 
     /* 数据库信号 */
     void signalFinished();
-    void signalFinishCompute(const bool drop_db);  // 任务完成信号，用于通知线程退出
+    void signalFinishJob(const bool drop_db);  // 任务完成信号，用于通知线程退出
     void signalConnDb(const QString& host, const int port, const QString& driver,
                       const QString& user, const QString& pwd, const QString& database);  // 连接数据库
     void signalDisconnDb();

@@ -5,6 +5,8 @@
 #include "AsyncComputeModule.h"
 
 #include <QMainWindow>
+#include <QProgressBar>
+
 #include <QSqlDatabase>
 #include <QThread>
 
@@ -46,9 +48,6 @@ private:
     void asyncJobDbConnStateChanged(const bool is_conn);
 
 signals:
-    void signalThreadFinished();
-    void signalThreadError();
-
     void signalSetActivityWidget(const bool activity);
 
 private slots:

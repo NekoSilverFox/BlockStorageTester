@@ -15,8 +15,6 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
-#include <QtConcurrent>
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -36,6 +34,24 @@ MainWindow::MainWindow(QWidget *parent)
     _cur_tb = "";
     is_db_conn = false;
 
+    QLabel* lbRuningTestType = new QLabel(this);
+    lbRuningTestType->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);  // 左对齐并垂直居中
+    lbRuningTestType->setContentsMargins(12, 0, 0, 0);  // 布局边缘的空间
+    lbRuningTestType->setText("Running test Type:");
+    ui->statusbar->addWidget(lbRuningTestType);
+
+    QProgressBar* progressBar = new QProgressBar(this);
+    progressBar->setRange(0, 100);
+    progressBar->setValue(0);
+    progressBar->setTextVisible(true);
+    ui->statusbar->addPermanentWidget(progressBar); // 永久部件添加到状态栏
+
+    QLabel *lbGithub = new QLabel(this);
+    lbGithub->setFrameStyle(QFrame::Box | QFrame::Sunken);
+    lbGithub->setText(tr("<a href=\"https://github.com/NekoSilverFox/BlockStorageTester\">GitHub</a>"));
+    lbGithub->setOpenExternalLinks(true);
+    ui->statusbar->addPermanentWidget(lbGithub); // 永久部件添加到状态栏
+
 
     /* 连接信号和槽 */
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::aboutThisProject);
@@ -45,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
     connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
 
-    connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){
+    connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){ /// TODO
     });
 
     connect(this, &MainWindow::signalSetActivityWidget, this, &MainWindow::setActivityWidget);
@@ -55,8 +71,6 @@ MainWindow::MainWindow(QWidget *parent)
     _asyncJob = new AsyncComputeModule();  // 一定不能给子线程任务增加 父对象！！
     _asyncJob->moveToThread(_threadAsyncJob);
     _threadAsyncJob->start();  // 通过 start() 被启动后，它通常处于等待操作系统调度的状态
-
-    connect(ui->btnTest, &QPushButton::clicked, this, [=](){emit _asyncJob->signalDropCurDb();});
 
     connect(_asyncJob, &AsyncComputeModule::signalConnDb, _asyncJob, &AsyncComputeModule::connectDatabase);
     connect(_asyncJob, &AsyncComputeModule::signalDisconnDb, _asyncJob, &AsyncComputeModule::disconnectCurrentDatabase);
@@ -73,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalErrorBox, this, &MainWindow::showErrorBox);
 
     connect(_asyncJob, &AsyncComputeModule::signalSetLbDBConnectedStyle, this, &MainWindow::setLbDBConnectedStyle);
-    connect(_asyncJob, &AsyncComputeModule::signalFinishCompute, _asyncJob, &AsyncComputeModule::finishCompute);
+    connect(_asyncJob, &AsyncComputeModule::signalFinishJob, _asyncJob, &AsyncComputeModule::finishJob);
 
     loadSettings();
 }
@@ -192,28 +206,6 @@ void MainWindow::setActivityWidget(const bool activity)
 }
 
 
-void MainWindow::closeEvent(QCloseEvent* event)
-{
-    QEventLoop loop;    // 使用事件循环等待任务完成
-    connect(_asyncJob, &AsyncComputeModule::signalFinished, &loop, &QEventLoop::quit);
-
-    /* 结束线程并且自动删除使用的数据库 */
-    if (is_db_conn)
-    {
-        emit _asyncJob->signalFinishCompute(ui->cbAutoDropDB->isChecked());
-        loop.exec();        // 阻塞，直到 signalFinished 被发出
-    }
-    _threadAsyncJob->quit();
-    _threadAsyncJob->wait();
-    _threadAsyncJob->deleteLater();
-
-    delete _asyncJob;
-    delete _threadAsyncJob;
-
-    saveSettings();
-    event->accept();
-    QMainWindow::closeEvent(event);
-}
 
 
 void MainWindow::aboutThisProject()
@@ -525,4 +517,27 @@ void MainWindow::showWarnBox(const QString& msg)
 void MainWindow::showErrorBox(const QString& msg)
 {
     QMessageBox::critical(this, "Error", msg);
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    QEventLoop loop;    // 使用事件循环等待任务完成
+    connect(_asyncJob, &AsyncComputeModule::signalFinished, &loop, &QEventLoop::quit);
+
+    /* 结束线程并且自动删除使用的数据库 */
+    if (is_db_conn)
+    {
+        emit _asyncJob->signalFinishJob(ui->cbAutoDropDB->isChecked());
+        loop.exec();        // 阻塞，直到 signalFinished 被发出
+    }
+    _threadAsyncJob->quit();
+    _threadAsyncJob->wait();
+    _threadAsyncJob->deleteLater();
+
+    delete _asyncJob;
+    delete _threadAsyncJob;
+
+    saveSettings();
+    event->accept();
+    QMainWindow::closeEvent(event);
 }

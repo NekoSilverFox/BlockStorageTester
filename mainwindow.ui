@@ -157,13 +157,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnTest">
-            <property name="text">
-             <string>test</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QCheckBox" name="cbAutoDropDB">
             <property name="text">
              <string> Auto drop DB</string>

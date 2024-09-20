@@ -91,10 +91,10 @@ void AsyncComputeModule::dropCurrentDatabase()
 }
 
 /**
- * @brief AsyncComputeModule::finishCompute 结束计算任务（将会结束改线程）
+ * @brief AsyncComputeModule::finishJob 结束计算任务（将会结束改线程）
  * @param drop_db 是否删除数据库
  */
-void AsyncComputeModule::finishCompute(const bool drop_db)
+void AsyncComputeModule::finishJob(const bool drop_db)
 {
     if (drop_db)
     {

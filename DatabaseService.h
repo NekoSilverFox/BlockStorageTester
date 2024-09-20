@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QSqlDatabase>
 
+#define DEFAULT_DB_CONN     ""
+
 class DatabaseService : public QObject
 {
     Q_OBJECT

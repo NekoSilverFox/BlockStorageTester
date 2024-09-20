@@ -1,5 +1,5 @@
 # 注意：编译环境要使用 Qt 安装器所安装的qt环境，否则可能出错
-QT       += core gui sql
+QT       += core gui sql concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,15 +19,20 @@ LIBS += -L/opt/homebrew/opt/libpq/lib -lpq
 
 # 添加所有 .cpp 源码文件到项目中
 SOURCES += \
+    AsyncComputeModule.cpp \
     DatabaseService.cpp \
+    InputFile.cpp \
     main.cpp \
     mainwindow.cpp
 
 
 HEADERS += \
+    AsyncComputeModule.h \
     BlockInfo.h \
     DatabaseService.h \
     HashAlgorithm.h \
+    InputFile.h \
+    ThemeStyle.h \
     mainwindow.h
 
 FORMS += \

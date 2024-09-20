@@ -16,6 +16,17 @@ AsyncComputeModule::AsyncComputeModule(QObject *parent)
     emit signalWriteSuccLog(QString("Thread %1 init successed").arg(getCurrentThreadID()));
 }
 
+AsyncComputeModule::~AsyncComputeModule()
+{
+    if (_dbs->isDatabaseOpen())
+    {
+        _dbs->disconnectCurDatabase();
+    }
+    delete _dbs;
+
+    emit signalFinished();
+}
+
 /**
  * @brief AsyncComputeModule::connectDatabase 连接到指定数据库（由于数据库操作不能跨线程，所以线程中要单独链接到数据库）
  * @param host 主机名或链接
@@ -91,6 +102,11 @@ void AsyncComputeModule::finishCompute(const bool drop_db)
     }
     disconnectCurrentDatabase();
     emit signalFinished();
+
+    _last_log = "Send signal AsyncComputeModule::signalFinished()";
+#if !QT_NO_DEBUG
+    qDebug() << _last_log;
+#endif
     return;
 }
 

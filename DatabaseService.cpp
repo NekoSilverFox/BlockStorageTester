@@ -11,13 +11,16 @@ DatabaseService::DatabaseService(QObject *parent)
     _driver = "QPSQL";
     _user = "";
     _password = "";
-    _name_db = "";
+    _name_db = DEFAULT_DB_CONN;
 }
 
 
 DatabaseService::~DatabaseService()
 {
     disconnectCurDatabase();
+#if !QT_NO_DEBUG
+    qDebug() << "DatabaseService::~DatabaseService auto disconnect";
+#endif
 }
 
 
@@ -168,7 +171,7 @@ bool DatabaseService::dropCurDatabase()
     disconnectCurDatabase();
 
     QString drop_db_name = _name_db;
-    connectDatabase(_host, _port, _driver, _user, _password, ""); // 要删除，先连接到默认数据库(注意：这里重新连接至默认数据库，并使 _name_db = "")
+    connectDatabase(_host, _port, _driver, _user, _password, DEFAULT_DB_CONN); // 要删除，先连接到默认数据库(注意：这里重新连接至默认数据库，并使 _name_db = "")
 
     QSqlQuery q;
     QString sql = QString("DROP DATABASE \"%1\";").arg(drop_db_name);
@@ -369,12 +372,12 @@ bool DatabaseService::updateCounter(const QString& tbName, const QByteArray &blo
     // 检查是否有行受影响
     if (q.numRowsAffected() > 0)
     {
-        _last_log = QString("Update successful! Number of rows affected: %1").arg(q.numRowsAffected());
+        _last_log = QString("Update Counter successful! Number of rows affected: %1").arg(q.numRowsAffected());
         return true;
     }
     else
     {
-        _last_log = "No matching hash found, update failed";
+        _last_log = "No matching hash found, Counter update failed";
         return false;
     }
 }

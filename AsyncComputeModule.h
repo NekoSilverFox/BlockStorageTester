@@ -13,6 +13,7 @@ class AsyncComputeModule : public QObject
     Q_OBJECT
 public:
     explicit AsyncComputeModule(QObject *parent = nullptr);
+    ~AsyncComputeModule();
 
 
     bool connectDatabase(const QString& host, const int port, const QString& driver,
@@ -39,7 +40,8 @@ signals:
 
 
     /* 数据库信号 */
-    void signalFinished(const bool drop_db);  // 任务完成信号，用于通知线程退出
+    void signalFinished();
+    void signalFinishCompute(const bool drop_db);  // 任务完成信号，用于通知线程退出
     void signalConnDb(const QString& host, const int port, const QString& driver,
                       const QString& user, const QString& pwd, const QString& database);  // 连接数据库
     void signalDisconnDb();
@@ -52,7 +54,6 @@ private:
 private:
     DatabaseService* _dbs; // 当前操作的数据库对象
     QString _last_log;     // 最后一条日志信息
-
 };
 
 #endif // ASYNCCOMPUTEMODULE_H

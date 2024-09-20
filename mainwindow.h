@@ -2,9 +2,11 @@
 #define MAINWINDOW_H
 
 #include "DatabaseService.h"
+#include "AsyncComputeModule.h"
 
 #include <QMainWindow>
 #include <QSqlDatabase>
+#include <QThread>
 
 
 QT_BEGIN_NAMESPACE
@@ -25,33 +27,48 @@ public:
     void writeErrorLog(const QString& msg);
     void writeSuccLog(const QString& msg);
 
+    void testBlockWritePerformanceModule();  // 测试分块写入性能
+
+    /* 数据库链接指示灯 */
+    void setLbDBConnectedStyle(QString style);
+
+    /* 调用对应 QMessageBox */
+    void showInfoBox(const QString& msg);
+    void showWarnBox(const QString& msg);
+    void showErrorBox(const QString& msg);
+
 private:
     /* 程序保存相关操作 */
     void saveSettings();
     void loadSettings();
 
     /* 数据库 & 数据表相关操作 */
-    void disconnectCurDBandSetUi();
+    void asyncJobDbConnStateChanged(const bool is_conn);
+
+signals:
+    void signalThreadFinished();
+    void signalThreadError();
+
+    void signalSetActivityWidget(const bool activity);
 
 private slots:
     void setActivityWidget(const bool activity);
 
     void autoConnectionDBModule();
-    void testBlockWritePerformanceModule();  // 测试分块写入性能
-
     void aboutThisProject();
     void selectSourceFile();
     void selectBlockFile();
-    void runTestModule();
 
     void closeEvent(QCloseEvent* event) override;
 
 private:
     Ui::MainWindow* ui;
 
-    DatabaseService* _dbs; // 当前操作的数据库对象
+    QThread* _threadAsyncJob;  // 用于计算的线程
+    AsyncComputeModule* _asyncJob;   // 并行计算任务
+
     QString _cur_tb;       // 当前正在操作的表名
-    bool _isFinalConnDB;   // 最终成功连接到数据库
+    bool is_db_conn;   // 子线程数据库连接状态
 
 };
 #endif // MAINWINDOW_H

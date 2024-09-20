@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>862</width>
-    <height>675</height>
+    <height>719</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -157,6 +157,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="btnTest">
+            <property name="text">
+             <string>test</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="cbAutoDropDB">
             <property name="text">
              <string> Auto drop DB</string>
@@ -192,20 +199,6 @@
               <widget class="QLabel" name="label_11">
                <property name="text">
                 <string>DB Connected</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="lbDBUsing">
-               <property name="text">
-                <string>●</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="label_13">
-               <property name="text">
-                <string>DB Using</string>
                </property>
               </widget>
              </item>

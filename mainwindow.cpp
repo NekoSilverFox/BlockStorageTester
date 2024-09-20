@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 
 #include "HashAlgorithm.h"
+#include "InputFile.h"
+#include "ThemeStyle.h"
 
 #include <QPixmap>
 #include <QMessageBox>
@@ -9,15 +11,11 @@
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QTimer>
-#include <QThread>
 
 #include <QSqlQuery>
 #include <QSqlError>
 
-
-
-#define     ENABLE_LOG     0
-
+#include <QtConcurrent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -33,22 +31,49 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);
 
-    ui->lbDBConnected->setStyleSheet("color: red;");
-    ui->lbDBUsing->setStyleSheet("color: red;");
+    ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_RED);
 
     _cur_tb = "";
-    _dbs = new DatabaseService(this);
-    _isFinalConnDB = false;
+    is_db_conn = false;
+
 
     /* 连接信号和槽 */
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::aboutThisProject);
     connect(ui->btnConnectDB, &QPushButton::clicked, this, &MainWindow::autoConnectionDBModule);
-    connect(ui->btnDisconnect, &QPushButton::clicked, this, &MainWindow::disconnectCurDBandSetUi);
+    connect(ui->btnDisconnect, &QPushButton::clicked, this, [=](){emit _asyncJob->signalDisconnDb();});
 
     connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
     connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
 
-    connect(ui->btnRunTest, &QPushButton::clicked, this, &MainWindow::testBlockWritePerformanceModule);
+    connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){
+    });
+
+    connect(this, &MainWindow::signalSetActivityWidget, this, &MainWindow::setActivityWidget);
+
+    /* 接收/处理子线程任务发出的信号 */
+    _threadAsyncJob = new QThread(this);
+    _asyncJob = new AsyncComputeModule();  // 一定不能给子线程任务增加 父对象！！
+    _asyncJob->moveToThread(_threadAsyncJob);
+    _threadAsyncJob->start();  // 通过 start() 被启动后，它通常处于等待操作系统调度的状态
+
+    connect(ui->btnTest, &QPushButton::clicked, this, [=](){emit _asyncJob->signalDropCurDb();});
+
+    connect(_asyncJob, &AsyncComputeModule::signalConnDb, _asyncJob, &AsyncComputeModule::connectDatabase);
+    connect(_asyncJob, &AsyncComputeModule::signalDisconnDb, _asyncJob, &AsyncComputeModule::disconnectCurrentDatabase);
+    connect(_asyncJob, &AsyncComputeModule::signalDbConnState, this, &MainWindow::asyncJobDbConnStateChanged);
+    connect(_asyncJob, &AsyncComputeModule::signalDropCurDb, _asyncJob, &AsyncComputeModule::dropCurrentDatabase);
+
+    connect(_asyncJob, &AsyncComputeModule::signalWriteInfoLog, this, &MainWindow::writeInfoLog);
+    connect(_asyncJob, &AsyncComputeModule::signalWriteWarningLog, this, &MainWindow::writeWarningLog);
+    connect(_asyncJob, &AsyncComputeModule::signalWriteErrorLog, this, &MainWindow::writeErrorLog);
+    connect(_asyncJob, &AsyncComputeModule::signalWriteSuccLog, this, &MainWindow::writeSuccLog);
+
+    connect(_asyncJob, &AsyncComputeModule::signalInfoBox, this, &MainWindow::showInfoBox);
+    connect(_asyncJob, &AsyncComputeModule::signalWarnBox, this, &MainWindow::showWarnBox);
+    connect(_asyncJob, &AsyncComputeModule::signalErrorBox, this, &MainWindow::showErrorBox);
+
+    connect(_asyncJob, &AsyncComputeModule::signalSetLbDBConnectedStyle, this, &MainWindow::setLbDBConnectedStyle);
+    connect(_asyncJob, &AsyncComputeModule::signalFinishCompute, _asyncJob, &AsyncComputeModule::finishCompute);
 
     loadSettings();
 }
@@ -101,21 +126,19 @@ void MainWindow::loadSettings()
 }
 
 /**
- * @brief MainWindow::disconnectCurDBandSetUi 断开当前数据库连接并重新设置 ui
+ * @brief MainWindow::asyncJobDbConnStateChange 子线程数据库连接状态发生改变
+ * @param is_conn
  */
-void MainWindow::disconnectCurDBandSetUi()
+void MainWindow::asyncJobDbConnStateChanged(const bool is_conn)
 {
-    bool isSucc = _dbs->disconnectCurDatabase();
-    if (isSucc)
+    is_db_conn = is_conn;
+    if (is_conn)
     {
-        _isFinalConnDB = false;
-        ui->lbDBUsing->setStyleSheet("color: red;");
-        ui->lbDBConnected->setStyleSheet("color: red;");
-        writeInfoLog(_dbs->lastLog());
+        ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_GREEN);
     }
     else
     {
-        writeWarningLog(_dbs->lastLog());
+        ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_RED);
     }
 }
 
@@ -169,27 +192,27 @@ void MainWindow::setActivityWidget(const bool activity)
 }
 
 
-
-
-
-
-
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    /* 自动删除使用的数据库 */
-    if (ui->cbAutoDropDB->isChecked() && _isFinalConnDB && _dbs->isDatabaseOpen())
+    QEventLoop loop;    // 使用事件循环等待任务完成
+    connect(_asyncJob, &AsyncComputeModule::signalFinished, &loop, &QEventLoop::quit);
+
+    /* 结束线程并且自动删除使用的数据库 */
+    if (is_db_conn)
     {
-        _dbs->dropCurDatabase();
-        qDebug() << _dbs->lastLog();
+        emit _asyncJob->signalFinishCompute(ui->cbAutoDropDB->isChecked());
+        loop.exec();        // 阻塞，直到 signalFinished 被发出
     }
+    _threadAsyncJob->quit();
+    _threadAsyncJob->wait();
+    _threadAsyncJob->deleteLater();
 
-    disconnectCurDBandSetUi();
-    delete _dbs;
-
-    event->accept();
-    QMainWindow::closeEvent(event);
+    delete _asyncJob;
+    delete _threadAsyncJob;
 
     saveSettings();
+    event->accept();
+    QMainWindow::closeEvent(event);
 }
 
 
@@ -213,16 +236,17 @@ void MainWindow::aboutThisProject()
  */
 void MainWindow::autoConnectionDBModule()
 {
-    /** 先尝试连接数据库（使用默认数据库名）
+    /**
+     *  【主线程】参数检查
      */
-    if (ui->leHost->text().isEmpty()
+    if (   ui->leHost->text().isEmpty()
         || ui->lePort->text().isEmpty()
         || ui->leDriver->text().isEmpty()
         || ui->leUser->text().isEmpty()
         || ui->lePassword->text().isEmpty()
         || ui->leDatabase->text().isEmpty())
     {
-        writeErrorLog("Fail connect to database");
+        writeErrorLog("Can not connect to database, do not have enough argument");
         QMessageBox::critical(this, "Error", "Please input all info about the database!");
         return;
     }
@@ -232,27 +256,30 @@ void MainWindow::autoConnectionDBModule()
     QString driver   = ui->leDriver->text();
     QString user     = ui->leUser->text();
     QString password = ui->lePassword->text();
-    QString dbName = ui->leDatabase->text().toLower();  // PostgreSQL数据库只能小写
+    QString dbName = ui->leDatabase->text().toLower();  // PostgreSQL 数据库只能小写
 
-    disconnectCurDBandSetUi();
-    bool isSucc = _dbs->connectDatabase(host, port,driver, user, password, "");
+    /**
+     * 【主线程】链接默认数据库，查看指定数据库是否存在
+     */
+    DatabaseService tmp_dbs; // 当前【主线程】操作的数据库对象，用于实现创建指定数据库
+    bool isSucc = tmp_dbs.connectDatabase(host, port,driver, user, password, DEFAULT_DB_CONN);
     if (isSucc)
     {
-        ui->lbDBConnected->setStyleSheet("color: green;");
-        writeSuccLog(_dbs->lastLog());
+        ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_GREEN);
+        writeSuccLog(tmp_dbs.lastLog());
     }
     else
     {
-        ui->lbDBConnected->setStyleSheet("color: red;");
-        writeErrorLog(_dbs->lastLog());
-        QMessageBox::warning(this, "DB Connect failed", _dbs->lastLog());
+        ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_RED);
+        writeErrorLog(tmp_dbs.lastLog());
+        QMessageBox::warning(this, "Database Connect failed", tmp_dbs.lastLog());
         return;
     }
 
     /**
-     * 检查用户指定的数据库是否存在
+     * 【主线程】检查用户指定的数据库是否存在
      */
-    if (!_dbs->isDatabaseExist(dbName))
+    if (!tmp_dbs.isDatabaseExist(dbName))
     {
         /* 数据库成功连接 && 数据库不存在 */
         int ret = QMessageBox::question(this, "Automatic create database",
@@ -264,92 +291,84 @@ void MainWindow::autoConnectionDBModule()
         {
             writeInfoLog(QString("Start to create database %1").arg(dbName));
 
-            bool succ = _dbs->createDatabase(dbName);
+            bool succ = tmp_dbs.createDatabase(dbName);
             if (succ)
             {
-                writeSuccLog(_dbs->lastLog());
+                writeSuccLog(tmp_dbs.lastLog());
             }
             else
             {
-                writeErrorLog(_dbs->lastLog());
-                QMessageBox::critical(this, "Error", _dbs->lastLog());
+                writeErrorLog(tmp_dbs.lastLog());
+                QMessageBox::critical(this, "Error", tmp_dbs.lastLog());
+                ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_RED);
                 return;
             }
         }
         else
         {
             writeWarningLog(QString("Automatic create database `%1` cancel").arg(dbName));
+            ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_RED);
             return;
         }
     }
 
     /**
-     * 重新连接为用户指定的数据库
+     *  【主线程】断开数据库连接，准备交由子线程操作
      */
-    disconnectCurDBandSetUi();
-    writeInfoLog(QString("Re-connect to database `%1` ...").arg(dbName));
-    ui->lbDBConnected->setStyleSheet("color: orange;");
+    isSucc = tmp_dbs.disconnectCurDatabase();
+    if (!isSucc)
+    {
+        writeErrorLog(tmp_dbs.lastLog());
+        return;
+    }
 
-    _isFinalConnDB = _dbs->connectDatabase(host, port,driver, user, password, dbName);
-    if (_isFinalConnDB)
-    {
-        ui->lbDBConnected->setStyleSheet("color: green;");
-        ui->lbDBUsing->setStyleSheet("color: green;");
-        writeSuccLog(_dbs->lastLog());
-        QMessageBox::information(this, "Success connected", _dbs->lastLog());
-    }
-    else
-    {
-        writeErrorLog(_dbs->lastLog());
-    }
+    /**
+     * 【子线程】重新连接为用户指定的数据库
+     */
+    writeInfoLog(QString("Child thread Re-connect to database `%1` ...").arg(dbName));
+    ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_ORANGE);
+    emit _asyncJob->signalConnDb(host, port, driver, user, password, dbName);
 }
 
 
 void MainWindow::testBlockWritePerformanceModule()
 {
-    writeInfoLog("Start test block write performance");
+#if 0
+    emit signalWriteInfoLog("Start test block write performance");
 
     /* 数据库无连接 */
-    if (!_isFinalConnDB)
+    if (!is_db_conn)
     {
-        writeErrorLog("↳ Database do not connected, test end");
+        emit signalWriteErrorLog("↳ Database do not connected, test end");
         QMessageBox::warning(this, "Warning", "Database do not connected!");
+        emit signalThreadFinished();
         return;
     }
 
     /* 没有选择文件或保存路径 */
     if (ui->leSourceFile->text().isEmpty() || ui->leBlockFile->text().isEmpty())
     {
-        writeErrorLog("↳ Source file or block file path is empty");
+        emit signalWriteErrorLog("↳ Source file or block file path is empty");
         QMessageBox::warning(this, "Warning", "Source file or block file path is empty!");
+        emit signalThreadFinished();
         return;
     }
 
-    /* 为了避免意外操作，给暂时禁用按钮 */
-    setActivityWidget(false);
+    /* 为了避免意外操作，暂时禁用按钮 */
+    emit signalSetActivityWidget(false);
 
-    /* 打开源文件 */
-    QFile sourceFile(ui->leSourceFile->text());
-    QFileInfo sourceInfo;
-    qint64 source_size;  // Bytes
-    QDataStream in;
-    if (sourceFile.open(QIODevice::ReadOnly))
+    /* 打开源文件（输入） */
+    InputFile* fin = new InputFile(this, ui->leSourceFile->text());
+    if (!fin->isOpen())
     {
-        in.setDevice(&sourceFile);
-        in.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
-        sourceInfo.setFile(sourceFile);
-        source_size = sourceInfo.size();
-
-        writeSuccLog(QString("↳ Successed open file %1, size %2 Bytes").arg(sourceInfo.filePath(), QString::number(source_size)));
-    }
-    else
-    {
-        writeErrorLog(QString("↳ Can not open file %1").arg(sourceInfo.filePath()));
-        QMessageBox::critical(this, "Error", QString("Can not open file %1").arg(sourceInfo.filePath()));
+        emit signalWriteErrorLog(fin->lastLog());
+        QMessageBox::critical(this, "Error", fin->lastLog());
+        emit signalThreadFinished();
         return;
     }
+    emit signalWriteSuccLog(fin->lastLog());
 
-    /* 创建块文件 */
+    /* 创建块文件（输出） */
     QFile blockFile(ui->leBlockFile->text());
     QFileInfo blockInfo;
     QDataStream out;
@@ -359,84 +378,95 @@ void MainWindow::testBlockWritePerformanceModule()
         out.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
         blockInfo.setFile(blockFile);
 
-        writeSuccLog(QString("↳ Successed create block file %1").arg(blockInfo.filePath()));
+        emit signalWriteSuccLog(QString("↳ Successed create Hash-Block %1").arg(blockInfo.filePath()));
     }
     else
     {
-        writeErrorLog(QString("↳ Can not create block file %1").arg(blockInfo.filePath()));
-        QMessageBox::critical(this, "Error", QString("Can not create block file %1").arg(blockInfo.filePath()));
+        emit signalWriteErrorLog(QString("↳ Can not create Hash-Block file %1").arg(blockInfo.filePath()));
+        QMessageBox::critical(this, "Error", QString("Can not create Hash-Block file %1").arg(blockInfo.filePath()));
+        emit signalThreadFinished();
         return;
     }
 
-    /* 获取读取的信息（块大小和算法） */
+    /**
+     * 获取读取的信息（块大小和算法）
+     */
     const size_t block_size = ui->cbBlockSize->currentText().toInt();  // 每个块的大小
     const HashAlg alg = (HashAlg)ui->cbHashAlg->currentIndex();
-    writeInfoLog(QString("↳ Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
+    emit signalWriteInfoLog(QString("↳ Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
 
-    /* 创建表 */
+    /**
+     * 创建表
+     */
     _cur_tb = QString("tb_%1bytes_%2").arg(QString::number(block_size), ui->cbHashAlg->currentText()).toLower();
-    writeInfoLog(QString("Create table `%1`").arg(_cur_tb));
-    bool isSucc = _dbs->createBlockInfoTable(_cur_tb);
-    writeInfoLog(QString("↳ Run SQL `%1`").arg(_dbs->lastSQL()));
+    emit signalWriteInfoLog(QString("Create table `%1`").arg(_cur_tb));
+    bool isSucc = tmp_dbs->createBlockInfoTable(_cur_tb);
+    emit signalWriteInfoLog(QString("↳ Run SQL `%1`").arg(tmp_dbs->lastSQL()));
     if (!isSucc)
     {
-        writeErrorLog(_dbs->lastLog());
-        QMessageBox::critical(this, "Error", _dbs->lastLog());
+        emit signalWriteErrorLog(tmp_dbs->lastLog());
+        QMessageBox::critical(this, "Error", tmp_dbs->lastLog());
+        emit signalThreadFinished();
         return;
     }
-    writeSuccLog(_dbs->lastLog());
+    emit signalWriteSuccLog(tmp_dbs->lastLog());
     ui->tbName->setText(_cur_tb);  ///TODO
-    ui->lcdNumber->display((int)(sourceInfo.size() / block_size));
+    ui->lcdNumber->display((int)(fin->fileSize() / block_size));
 
-    /* 开始读取 -> 计算哈希 -> 写入 */
+
+    /**
+     * 开始读取 -> 计算哈希 -> 写入
+     */
     QByteArray buf_block;       // 读取的源文件的 buffer（用来暂存当前块）
     qint64 ptr_loc = 0;         // 读取指针目前所处的位置
     unsigned int cur_block_size = 0;  // 本次读取块的大小（因为文件末尾最后块的大小有可能不是块大小的整数倍）
     QByteArray buf_hash;        // 存储当前块的哈希值
-    size_t repeat_times = 0;
+    size_t repeat_times = 0;    // 当前块的重复次数
     unsigned int total_repeat_times = 0;
+
 
     QTimer timer;
     connect(&timer, &QTimer::timeout, this, [=](){
-        writeInfoLog(QString("Testing writing performance %1%").arg(ptr_loc / sourceInfo.size() * 100));
+        emit signalWriteInfoLog(QString("Testing writing performance %1%").arg(ptr_loc / fin->fileSize() * 100));
     });
     timer.start(10);  // 启动定时器，参数为毫秒 ms
-    QThread::msleep(100);
 
-    while (!in.atEnd())
+    while (!fin->atEnd())
     {
-        buf_block = sourceFile.read(block_size);
+        buf_block = fin->read(block_size);
         cur_block_size = buf_block.size();  // 计算当前读取的字节数，防止越界
         buf_hash = getDataHash(buf_block, alg);  // 计算哈希
 
         /* 写入数据库 */
-        repeat_times = _dbs->getHashRepeatTimes(_cur_tb, buf_hash);
+        repeat_times = tmp_dbs->getHashRepeatTimes(_cur_tb, buf_hash);
 #if !QT_NO_DEBUG
-        qDebug() << _dbs->lastLog();
+        qDebug() << tmp_dbs->lastLog();
 #endif
         if (0 == repeat_times)  // 重复次数为 0 说明没有记录过当前哈希
         {
-            _dbs->insertNewBlockInfoRow(_cur_tb, buf_hash, sourceInfo.filePath(), ptr_loc, cur_block_size);
+            tmp_dbs->insertNewBlockInfoRow(_cur_tb, buf_hash,fin->filePath(), ptr_loc, cur_block_size);
         }
         else
         {
             ++total_repeat_times;
-            _dbs->updateCounter(_cur_tb, buf_hash, (repeat_times + 1));
-            ui->lcdRepeatTimes->display(QString("%1  Per:%2").arg(total_repeat_times, total_repeat_times / (source_size / block_size)));
+            tmp_dbs->updateCounter(_cur_tb, buf_hash, (repeat_times + 1));
+            // ui->lcdRepeatTimes->display(QString("%1  Per:%2").arg(total_repeat_times, total_repeat_times / (fin->fileSize() / block_size)));
         }
 #if !QT_NO_DEBUG
-        qDebug() << _dbs->lastLog();
-        qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, Repet times: %4/n").arg(
+        qDebug() << tmp_dbs->lastLog();
+        qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, Repet times: %4").arg(
             buf_block.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
 #endif
         out << buf_hash;           // 记录哈希到文件
         ptr_loc += cur_block_size; // 移动指针位置
     }
     blockFile.close();
-    writeSuccLog("↳ Finish test writing performance");
+    emit signalWriteSuccLog("↳ Finish test writing performance");
 
     /* 解锁按钮 */
-    setActivityWidget(true);
+    emit signalSetActivityWidget(true);
+    emit signalThreadFinished();
+#endif
 }
 
 
@@ -473,10 +503,26 @@ void MainWindow::selectBlockFile()
     return;
 }
 
-/** 执行测试
- * @brief MainWindow::runTestModule
+/**
+ * @brief MainWindow::setLbDBConnectedStyle 设置 lbDBConnected 的风格
+ * @param style 风格
  */
-void MainWindow::runTestModule()
+void MainWindow::setLbDBConnectedStyle(QString style)
 {
+    ui->lbDBConnected->setStyleSheet(style);
+}
 
+void MainWindow::showInfoBox(const QString& msg)
+{
+    QMessageBox::information(this, "Info", msg);
+}
+
+void MainWindow::showWarnBox(const QString& msg)
+{
+    QMessageBox::warning(this, "Warning", msg);
+}
+
+void MainWindow::showErrorBox(const QString& msg)
+{
+    QMessageBox::critical(this, "Error", msg);
 }

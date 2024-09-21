@@ -35,6 +35,9 @@ signals:
     void signalSetProgressBarValue(const int number);
     void signalSetProgressBarRange(const int minimum, const int maximum);
     void signalSetLcdTotalFileBlocks(const int number);
+    void signalSetLcdTotalHashBlocks(const int number);
+    void signalSetLcdTotalRepeatBlocks(const QString& str);
+    void signalSetLcdUseTime(const double number);
 
     /* 日志信号 */
     void signalWriteInfoLog(const QString& msg);

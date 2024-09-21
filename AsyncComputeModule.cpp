@@ -196,7 +196,6 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
     emit signalSetLbRuningJobInfo(QString("Job: Test write profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
     emit signalSetProgressBarRange(0, fin->fileSize());
     emit signalSetProgressBarValue(0);
-    emit signalSetLcdTotalFileBlocks((int)(fin->fileSize() / block_size));
 
     /**
      * 开始读取 -> 计算哈希 -> 写入
@@ -207,11 +206,13 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
     QByteArray buf_hash;        // 存储当前块的哈希值
     size_t repeat_times = 0;    // 当前块的重复次数
     size_t total_repeat_times = 0;
+    size_t total_hash_blocks = 0;
+    const size_t file_blocks = fin->fileSize() / block_size;// 文件一共会被分多少块
+    emit signalSetLcdTotalFileBlocks(file_blocks);
 
     /* 计算耗时 */
     QElapsedTimer elapsed_time;
     elapsed_time.start();
-
     while (!fin->atEnd())
     {
         buf_block = fin->read(block_size);
@@ -226,13 +227,13 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 #endif
         if (0 == repeat_times)  // 重复次数为 0 说明没有记录过当前哈希
         {
+            ++total_hash_blocks;
             _dbs->insertNewBlockInfoRow(tb, buf_hash, fin->filePath(), ptr_loc, cur_block_size);
         }
         else
         {
             ++total_repeat_times;
             _dbs->updateCounter(tb, buf_hash, (repeat_times + 1));
-            // ui->lcdRepeatTimes->display(QString("%1  Per:%2").arg(total_repeat_times, total_repeat_times / (fin->fileSize() / block_size)));
         }
 
 #if !QT_NO_DEBUG
@@ -243,10 +244,20 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 #endif
         out << buf_hash;           // 记录哈希到文件
         ptr_loc += cur_block_size; // 移动指针位置
-        emit signalSetProgressBarValue(ptr_loc);
+
+        /* 刷新 ui */
+        if (0 == ptr_loc % 16 || fin->atEnd())
+        {
+            emit signalSetProgressBarValue(ptr_loc);
+            emit signalSetLcdTotalHashBlocks(total_hash_blocks);
+            emit signalSetLcdTotalRepeatBlocks(QString("%1  Per:%2").arg(total_repeat_times, (double)total_repeat_times / file_blocks));
+            emit signalSetLcdUseTime((double)(elapsed_time.elapsed() / 1000.0));
+        }
     }
     blockFile.close();
-    _last_log = QString("Thread %1: Finish test writing performance, use time %2s").arg(getCurrentThreadID(), (double)(elapsed_time.elapsed() / 1000.0));
+
+    _last_log = QString("Thread %1: Finish test writing performance, use time %2 sec").arg(getCurrentThreadID(), (double)(elapsed_time.elapsed() / 1000.0));
+
     emit signalWriteSuccLog(_last_log);
 
     /* 解锁按钮 */

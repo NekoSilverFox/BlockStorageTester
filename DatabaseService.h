@@ -42,9 +42,6 @@ public:
     QString lastSQL();
     QString lastLog();
 
-signals:
-
-
 private:
     QSqlDatabase _db;   // 连接 & 管理的数据库对象
 

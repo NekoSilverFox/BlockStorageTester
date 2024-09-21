@@ -13,99 +13,11 @@ enum HashAlg {
     SHA512 = 3
 };
 
-/**
- * @brief getDataHash
- * @param data 数据
- * @param alg 算法
- * @return
- */
-QByteArray getDataHash(const QByteArray& data, const HashAlg alg)
+struct Hash
 {
-    switch (alg) {
-    case HashAlg::MD5:
-        return QCryptographicHash::hash(data, QCryptographicHash::Md5);
-
-    case HashAlg::SHA1:
-        return QCryptographicHash::hash(data, QCryptographicHash::Sha1);
-
-    case HashAlg::SHA256:
-        return QCryptographicHash::hash(data, QCryptographicHash::Sha256);
-
-    case HashAlg::SHA512:
-        return QCryptographicHash::hash(data, QCryptographicHash::Sha512);
-
-    default:
-        break;
-    }
-}
-
-/**
- * @brief getHashName 获得哈希算法名字字符串
- * @param alg 哈希算法
- * @return
- */
-QString getHashName(const HashAlg alg)
-{
-    switch (alg) {
-    case HashAlg::MD5:
-        return "MD5";
-
-    case HashAlg::SHA1:
-        return "SHA1";
-
-    case HashAlg::SHA256:
-        return "SHA256";
-
-    case HashAlg::SHA512:
-        return "SHA512";
-
-    default:
-        return "NONE";
-        break;
-    }
-}
-
-/**
- * @brief getHashSize 获取哈希算法计算后的哈希长度（Byte）
- * @param alg 哈希算法
- * @return
- */
-size_t getHashSize(const HashAlg alg)
-{
-    return 0;
-}
-
-namespace Hash
-{
-
-QString MD5(const QByteArray& data)
-{
-    QCryptographicHash hash(QCryptographicHash::Md5);
-    hash.addData(data);
-    return hash.result().toHex();   // 获取哈希结果并转换为十六进制字符串
-}
-
-QString SHA1(const QByteArray& data)
-{
-    QCryptographicHash hash(QCryptographicHash::Sha1);
-    hash.addData(data);
-    return hash.result().toHex();   // 获取哈希结果并转换为十六进制字符串
-}
-
-QString SHA256(const QByteArray& data)
-{
-    QCryptographicHash hash(QCryptographicHash::Sha256);
-    hash.addData(data);
-    return hash.result().toHex();   // 获取哈希结果并转换为十六进制字符串
-}
-
-QString SHA512(const QByteArray& data)
-{
-    QCryptographicHash hash(QCryptographicHash::Sha512);
-    hash.addData(data);
-    return hash.result().toHex();   // 获取哈希结果并转换为十六进制字符串
-}
-
-}
+    static QByteArray getDataHash(const QByteArray& data, HashAlg alg);
+    static QString getHashName(const HashAlg alg);
+    static size_t getHashSize(const HashAlg alg);
+};
 
 #endif // HASHALGORITHM_H

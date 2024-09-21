@@ -29,7 +29,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_RED);
 
-    _cur_tb = "";
     is_db_conn = false;
 
     QLabel* lbRuningJobInfo = new QLabel(this);
@@ -50,7 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
     lbGithub->setOpenExternalLinks(true);
     ui->statusbar->addPermanentWidget(lbGithub); // 永久部件添加到状态栏
 
-
     /* 连接信号和槽 */
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::aboutThisProject);
     connect(ui->btnConnectDB, &QPushButton::clicked, this, &MainWindow::autoConnectionDBModule);
@@ -59,8 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
     connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
 
-    connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){ /// TODO
-    });
+    connect(ui->btnRunTest, &QPushButton::clicked, this, &MainWindow::testBlockWritePerformanceModule);
 
 
     /* 接收/处理子线程任务发出的信号 */
@@ -103,7 +100,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::saveSettings()
 {
-    QSettings settings("Nekosilverfox", "BlockStoreTester", this);
+    QSettings settings("NekoSilverfox", "BlockStoreTester", this);
 
     settings.setValue("leHost", ui->leHost->text());
     settings.setValue("lePort", ui->lePort->text());
@@ -124,7 +121,7 @@ void MainWindow::saveSettings()
 
 void MainWindow::loadSettings()
 {
-    QSettings settings("Nekosilverfox", "BlockStoreTester", this);
+    QSettings settings("NekoSilverfox", "BlockStoreTester", this);
 
     ui->leHost->setText(settings.value("leHost", "localhost").toString());
     ui->lePort->setText(settings.value("lePort", "5432").toString());

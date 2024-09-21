@@ -1,10 +1,10 @@
 #ifndef ASYNCCOMPUTEMODULE_H
 #define ASYNCCOMPUTEMODULE_H
 
+#include <QObject>
+
 #include "DatabaseService.h"
 #include "HashAlgorithm.h"
-
-#include <QObject>
 
 /**
  * @brief [Asynchronous Computation Module] 异步计算模块，执行所需的数据库、文件IO、计算等复杂的或耗时的计算任务。注意：最好使用单独的线程调用这个模块
@@ -15,7 +15,6 @@ class AsyncComputeModule : public QObject
 public:
     explicit AsyncComputeModule(QObject *parent = nullptr);
     ~AsyncComputeModule();
-
 
     /* 数据库操作 */
     bool connectDatabase(const QString& host, const int port, const QString& driver,
@@ -57,7 +56,8 @@ signals:
     void signalDropCurDb();
 
     /* 计算任务信号 */
-    void signalStartTestBlockWritePerformance(const QString& source_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
+    void signalStartTestBlockWritePerformance(const QString& source_file_path, const QString& block_file_path,
+                                              const HashAlg alg, const size_t block_size);
 
 private:
     QString getCurrentThreadID() const;

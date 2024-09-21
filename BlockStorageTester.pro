@@ -21,6 +21,7 @@ LIBS += -L/opt/homebrew/opt/libpq/lib -lpq
 SOURCES += \
     AsyncComputeModule.cpp \
     DatabaseService.cpp \
+    HashAlgorithm.cpp \
     InputFile.cpp \
     main.cpp \
     mainwindow.cpp

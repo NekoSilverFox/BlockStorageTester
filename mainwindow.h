@@ -57,11 +57,9 @@ private slots:
 private:
     Ui::MainWindow* ui;
 
-    QThread* _threadAsyncJob;  // 用于计算的线程
-    AsyncComputeModule* _asyncJob;   // 并行计算任务
+    QThread* _threadAsyncJob;       // 用于计算的线程
+    AsyncComputeModule* _asyncJob;  // 并行计算任务
 
-    QString _cur_tb;       // 当前正在操作的表名
     bool is_db_conn;   // 子线程数据库连接状态
-
 };
 #endif // MAINWINDOW_H

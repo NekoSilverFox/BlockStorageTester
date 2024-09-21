@@ -1,15 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "DatabaseService.h"
 #include "AsyncComputeModule.h"
 
 #include <QMainWindow>
-#include <QProgressBar>
-
-#include <QSqlDatabase>
 #include <QThread>
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -48,7 +43,6 @@ private:
     void asyncJobDbConnStateChanged(const bool is_conn);
 
 signals:
-    void signalSetActivityWidget(const bool activity);
 
 private slots:
     void setActivityWidget(const bool activity);

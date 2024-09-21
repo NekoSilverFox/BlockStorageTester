@@ -1,13 +1,13 @@
 #include "AsyncComputeModule.h"
-#include "ThemeStyle.h"
+#include "InputFile.h"
 
 #include <QDebug>
 #include <QThread>
+#include <QTimer>
 
 /**
  * 注意：这个类中所有的方法都是准备放置在子线程中执行的，内部包含了耗时的复杂计算任务
  */
-
 AsyncComputeModule::AsyncComputeModule(QObject *parent)
     : QObject{parent}
 {
@@ -108,6 +108,146 @@ void AsyncComputeModule::finishJob(const bool drop_db)
     qDebug() << _last_log;
 #endif
     return;
+}
+
+/**
+ * @brief AsyncComputeModule::runBlockWriteProfmance 将源文件分块，计算哈希，然后写入数据库和文件
+ * @param source_file_path 源文件路径
+ * @param block_file_path 分块后记录源文件块哈希的文件
+ * @param alg 哈希算法
+ * @param block_size 块大小（Byte）
+ */
+void AsyncComputeModule::runBlockWriteProfmance(const QString &source_file_path, const QString &block_file_path, const HashAlg alg, const size_t block_size)
+{
+    emit signalWriteInfoLog(QString("Thread %1: Start test block write performance: Source file: %2; Hash-Block File: %3, Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), source_file_path, block_file_path,  QString::number(alg), QString::number(block_size)));
+
+
+    /* 为了避免意外操作，暂时禁用按钮 */
+    emit signalSetActivityWidget(false);
+
+    /* 数据库无连接 */
+    if (!_dbs->isDatabaseOpen())
+    {
+        _last_log = QString("Thread %1: Database do not connected, test exit").arg(getCurrentThreadID());
+        emit signalWriteErrorLog(_last_log);
+        emit signalWarnBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        return;
+    }
+
+    /* 打开源文件（输入） */
+    InputFile* fin = new InputFile(this, source_file_path);
+    bool is_succ = fin->isOpen();
+    _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), fin->lastLog());
+    if (!is_succ)
+    {
+        emit signalWriteErrorLog(_last_log);
+        emit signalErrorBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        return;
+    }
+    emit signalWriteSuccLog(_last_log);
+
+    /* 创建块文件（输出） */
+    QFile blockFile(block_file_path);
+    QFileInfo blockInfo;
+    QDataStream out;
+    if (blockFile.open(QIODevice::WriteOnly))
+    {
+        out.setDevice(&blockFile);
+        out.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
+        blockInfo.setFile(blockFile);
+
+        _last_log = QString("Thread %1: Successed create Hash-Block %2").arg(getCurrentThreadID(), blockInfo.filePath());
+        emit signalWriteSuccLog(_last_log);
+    }
+    else
+    {
+        _last_log = QString("Thread %1: Can not create Hash-Block %2").arg(getCurrentThreadID(), blockInfo.filePath());
+        emit signalWriteErrorLog(_last_log);
+        emit signalErrorBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        return;
+    }
+
+
+    /* 创建表 */
+    QString tb = QString("tb_%1bytes_%2").arg(QString::number(block_size), getHashName(alg)).toLower();
+    emit signalWriteInfoLog(QString("Thread %1: Create table `%2`").arg(getCurrentThreadID(), tb));
+    is_succ = _dbs->createBlockInfoTable(tb);
+    emit signalWriteInfoLog(QString("Thread %1: Run SQL `%2`").arg(getCurrentThreadID(), _dbs->lastSQL()));
+    _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog());
+    if (!is_succ)
+    {
+        emit signalWriteErrorLog(_last_log);
+        emit signalErrorBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        return;
+    }
+    emit signalWriteSuccLog(_last_log);
+
+    /* 更新（初始化） UI 信息 */
+    emit signalSetLbRuningJobInfo(QString("Job: Test write profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(getHashName(alg), QString::number(block_size), tb));
+    emit signalSetProgressBar(0);
+    emit signalSetLcdTotalFileBlocks((int)(fin->fileSize() / block_size));
+
+    /**
+     * 开始读取 -> 计算哈希 -> 写入
+     */
+    QByteArray buf_block;       // 读取的源文件的 buffer（用来暂存当前块）
+    qint64 ptr_loc = 0;         // 读取指针目前所处的位置
+    size_t cur_block_size = 0;  // 本次读取块的大小（因为文件末尾最后块的大小有可能不是块大小的整数倍）
+    QByteArray buf_hash;        // 存储当前块的哈希值
+    size_t repeat_times = 0;    // 当前块的重复次数
+    size_t total_repeat_times = 0;
+
+    /* 定时更新进度条 */
+    QTimer timer;
+    connect(&timer, &QTimer::timeout, this, [=](){ emit signalSetProgressBar(ptr_loc / fin->fileSize() * 100); });
+    timer.start(50);  // 启动定时器，参数为毫秒 ms
+
+    while (!fin->atEnd())
+    {
+        buf_block = fin->read(block_size);
+        cur_block_size = buf_block.size();       // 计算当前读取的字节数，防止越界
+        buf_hash = getDataHash(buf_block, alg);  // 计算哈希
+
+        /* 写入数据库 */
+        repeat_times = _dbs->getHashRepeatTimes(tb, buf_hash);
+
+#if !QT_NO_DEBUG
+        qDebug() << _dbs->lastLog();
+#endif
+        if (0 == repeat_times)  // 重复次数为 0 说明没有记录过当前哈希
+        {
+            _dbs->insertNewBlockInfoRow(tb, buf_hash,fin->filePath(), ptr_loc, cur_block_size);
+        }
+        else
+        {
+            ++total_repeat_times;
+            _dbs->updateCounter(tb, buf_hash, (repeat_times + 1));
+            // ui->lcdRepeatTimes->display(QString("%1  Per:%2").arg(total_repeat_times, total_repeat_times / (fin->fileSize() / block_size)));
+        }
+
+#if !QT_NO_DEBUG
+        qDebug() << _dbs->lastLog();
+        qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, Repet times: %4").arg(
+            buf_block.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
+        qDebug() << "---------------------------------";
+#endif
+        out << buf_hash;           // 记录哈希到文件
+        ptr_loc += cur_block_size; // 移动指针位置
+    }
+    blockFile.close();
+    _last_log = QString("Thread %1: Finish test writing performance").arg(getCurrentThreadID());
+    emit signalWriteSuccLog(_last_log);
+
+    /* 解锁按钮 */
+     emit signalSetActivityWidget(true);
 }
 
 QString AsyncComputeModule::getCurrentThreadID() const

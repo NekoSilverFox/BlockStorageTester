@@ -40,6 +40,32 @@ QByteArray getDataHash(const QByteArray& data, const HashAlg alg)
 }
 
 /**
+ * @brief getHashName 获得哈希算法名字字符串
+ * @param alg 哈希算法
+ * @return
+ */
+QString getHashName(const HashAlg alg)
+{
+    switch (alg) {
+    case HashAlg::MD5:
+        return "MD5";
+
+    case HashAlg::SHA1:
+        return "SHA1";
+
+    case HashAlg::SHA256:
+        return "SHA256";
+
+    case HashAlg::SHA512:
+        return "SHA512";
+
+    default:
+        return "NONE";
+        break;
+    }
+}
+
+/**
  * @brief getHashSize 获取哈希算法计算后的哈希长度（Byte）
  * @param alg 哈希算法
  * @return

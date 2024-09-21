@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "HashAlgorithm.h"
-#include "InputFile.h"
 #include "ThemeStyle.h"
 
 #include <QPixmap>
@@ -10,7 +8,7 @@
 #include <QSettings>
 #include <QCloseEvent>
 #include <QFileDialog>
-#include <QTimer>
+#include <QProgressBar>
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -34,11 +32,11 @@ MainWindow::MainWindow(QWidget *parent)
     _cur_tb = "";
     is_db_conn = false;
 
-    QLabel* lbRuningTestType = new QLabel(this);
-    lbRuningTestType->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);  // 左对齐并垂直居中
-    lbRuningTestType->setContentsMargins(12, 0, 0, 0);  // 布局边缘的空间
-    lbRuningTestType->setText("Running test Type:");
-    ui->statusbar->addWidget(lbRuningTestType);
+    QLabel* lbRuningJobInfo = new QLabel(this);
+    lbRuningJobInfo->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);  // 左对齐并垂直居中
+    lbRuningJobInfo->setContentsMargins(12, 0, 0, 0);  // 布局边缘的空间
+    lbRuningJobInfo->setText("Running test Type:");
+    ui->statusbar->addWidget(lbRuningJobInfo);
 
     QProgressBar* progressBar = new QProgressBar(this);
     progressBar->setRange(0, 100);
@@ -64,7 +62,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnRunTest, &QPushButton::clicked, this, [=](){ /// TODO
     });
 
-    connect(this, &MainWindow::signalSetActivityWidget, this, &MainWindow::setActivityWidget);
 
     /* 接收/处理子线程任务发出的信号 */
     _threadAsyncJob = new QThread(this);
@@ -77,6 +74,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalDbConnState, this, &MainWindow::asyncJobDbConnStateChanged);
     connect(_asyncJob, &AsyncComputeModule::signalDropCurDb, _asyncJob, &AsyncComputeModule::dropCurrentDatabase);
 
+    connect(_asyncJob, &AsyncComputeModule::signalStartTestBlockWritePerformance, _asyncJob, &AsyncComputeModule::runBlockWriteProfmance);
+
     connect(_asyncJob, &AsyncComputeModule::signalWriteInfoLog, this, &MainWindow::writeInfoLog);
     connect(_asyncJob, &AsyncComputeModule::signalWriteWarningLog, this, &MainWindow::writeWarningLog);
     connect(_asyncJob, &AsyncComputeModule::signalWriteErrorLog, this, &MainWindow::writeErrorLog);
@@ -87,6 +86,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalErrorBox, this, &MainWindow::showErrorBox);
 
     connect(_asyncJob, &AsyncComputeModule::signalSetLbDBConnectedStyle, this, &MainWindow::setLbDBConnectedStyle);
+    connect(_asyncJob, &AsyncComputeModule::signalSetActivityWidget, this, &MainWindow::setActivityWidget);
+    connect(_asyncJob, &AsyncComputeModule::signalSetLbRuningJobInfo, this, [=](const QString& info){lbRuningJobInfo->setText(info);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetProgressBar, this, [=](const int number){progressBar->setValue(number);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalFileBlocks, this, [=](const int number){ui->lcdTotalFileBlocks->display(number);});
+
     connect(_asyncJob, &AsyncComputeModule::signalFinishJob, _asyncJob, &AsyncComputeModule::finishJob);
 
     loadSettings();
@@ -206,8 +210,6 @@ void MainWindow::setActivityWidget(const bool activity)
 }
 
 
-
-
 void MainWindow::aboutThisProject()
 {
     QMessageBox::about(this, "About Block Storage Tester",
@@ -228,6 +230,7 @@ void MainWindow::aboutThisProject()
  */
 void MainWindow::autoConnectionDBModule()
 {
+
     /**
      *  【主线程】参数检查
      */
@@ -325,140 +328,23 @@ void MainWindow::autoConnectionDBModule()
 
 void MainWindow::testBlockWritePerformanceModule()
 {
-#if 0
-    emit signalWriteInfoLog("Start test block write performance");
-
-    /* 数据库无连接 */
-    if (!is_db_conn)
-    {
-        emit signalWriteErrorLog("↳ Database do not connected, test end");
-        QMessageBox::warning(this, "Warning", "Database do not connected!");
-        emit signalThreadFinished();
-        return;
-    }
-
+    setActivityWidget(false);
     /* 没有选择文件或保存路径 */
     if (ui->leSourceFile->text().isEmpty() || ui->leBlockFile->text().isEmpty())
     {
-        emit signalWriteErrorLog("↳ Source file or block file path is empty");
+        writeErrorLog("↳ Source file or block file path is empty");
         QMessageBox::warning(this, "Warning", "Source file or block file path is empty!");
-        emit signalThreadFinished();
+        setActivityWidget(true);
         return;
     }
 
-    /* 为了避免意外操作，暂时禁用按钮 */
-    emit signalSetActivityWidget(false);
+    /* 获取读取的信息（块大小和算法） */
+    const size_t block_size = ui->cbBlockSize->currentText().toInt();  // 每个块的大小(Byte)
+    const HashAlg alg = HashAlg(ui->cbHashAlg->currentIndex());
+    writeInfoLog(QString("Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
 
-    /* 打开源文件（输入） */
-    InputFile* fin = new InputFile(this, ui->leSourceFile->text());
-    if (!fin->isOpen())
-    {
-        emit signalWriteErrorLog(fin->lastLog());
-        QMessageBox::critical(this, "Error", fin->lastLog());
-        emit signalThreadFinished();
-        return;
-    }
-    emit signalWriteSuccLog(fin->lastLog());
-
-    /* 创建块文件（输出） */
-    QFile blockFile(ui->leBlockFile->text());
-    QFileInfo blockInfo;
-    QDataStream out;
-    if (blockFile.open(QIODevice::WriteOnly))
-    {
-        out.setDevice(&blockFile);
-        out.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
-        blockInfo.setFile(blockFile);
-
-        emit signalWriteSuccLog(QString("↳ Successed create Hash-Block %1").arg(blockInfo.filePath()));
-    }
-    else
-    {
-        emit signalWriteErrorLog(QString("↳ Can not create Hash-Block file %1").arg(blockInfo.filePath()));
-        QMessageBox::critical(this, "Error", QString("Can not create Hash-Block file %1").arg(blockInfo.filePath()));
-        emit signalThreadFinished();
-        return;
-    }
-
-    /**
-     * 获取读取的信息（块大小和算法）
-     */
-    const size_t block_size = ui->cbBlockSize->currentText().toInt();  // 每个块的大小
-    const HashAlg alg = (HashAlg)ui->cbHashAlg->currentIndex();
-    emit signalWriteInfoLog(QString("↳ Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
-
-    /**
-     * 创建表
-     */
-    _cur_tb = QString("tb_%1bytes_%2").arg(QString::number(block_size), ui->cbHashAlg->currentText()).toLower();
-    emit signalWriteInfoLog(QString("Create table `%1`").arg(_cur_tb));
-    bool isSucc = tmp_dbs->createBlockInfoTable(_cur_tb);
-    emit signalWriteInfoLog(QString("↳ Run SQL `%1`").arg(tmp_dbs->lastSQL()));
-    if (!isSucc)
-    {
-        emit signalWriteErrorLog(tmp_dbs->lastLog());
-        QMessageBox::critical(this, "Error", tmp_dbs->lastLog());
-        emit signalThreadFinished();
-        return;
-    }
-    emit signalWriteSuccLog(tmp_dbs->lastLog());
-    ui->tbName->setText(_cur_tb);  ///TODO
-    ui->lcdNumber->display((int)(fin->fileSize() / block_size));
-
-
-    /**
-     * 开始读取 -> 计算哈希 -> 写入
-     */
-    QByteArray buf_block;       // 读取的源文件的 buffer（用来暂存当前块）
-    qint64 ptr_loc = 0;         // 读取指针目前所处的位置
-    unsigned int cur_block_size = 0;  // 本次读取块的大小（因为文件末尾最后块的大小有可能不是块大小的整数倍）
-    QByteArray buf_hash;        // 存储当前块的哈希值
-    size_t repeat_times = 0;    // 当前块的重复次数
-    unsigned int total_repeat_times = 0;
-
-
-    QTimer timer;
-    connect(&timer, &QTimer::timeout, this, [=](){
-        emit signalWriteInfoLog(QString("Testing writing performance %1%").arg(ptr_loc / fin->fileSize() * 100));
-    });
-    timer.start(10);  // 启动定时器，参数为毫秒 ms
-
-    while (!fin->atEnd())
-    {
-        buf_block = fin->read(block_size);
-        cur_block_size = buf_block.size();  // 计算当前读取的字节数，防止越界
-        buf_hash = getDataHash(buf_block, alg);  // 计算哈希
-
-        /* 写入数据库 */
-        repeat_times = tmp_dbs->getHashRepeatTimes(_cur_tb, buf_hash);
-#if !QT_NO_DEBUG
-        qDebug() << tmp_dbs->lastLog();
-#endif
-        if (0 == repeat_times)  // 重复次数为 0 说明没有记录过当前哈希
-        {
-            tmp_dbs->insertNewBlockInfoRow(_cur_tb, buf_hash,fin->filePath(), ptr_loc, cur_block_size);
-        }
-        else
-        {
-            ++total_repeat_times;
-            tmp_dbs->updateCounter(_cur_tb, buf_hash, (repeat_times + 1));
-            // ui->lcdRepeatTimes->display(QString("%1  Per:%2").arg(total_repeat_times, total_repeat_times / (fin->fileSize() / block_size)));
-        }
-#if !QT_NO_DEBUG
-        qDebug() << tmp_dbs->lastLog();
-        qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, Repet times: %4").arg(
-            buf_block.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
-#endif
-        out << buf_hash;           // 记录哈希到文件
-        ptr_loc += cur_block_size; // 移动指针位置
-    }
-    blockFile.close();
-    emit signalWriteSuccLog("↳ Finish test writing performance");
-
-    /* 解锁按钮 */
-    emit signalSetActivityWidget(true);
-    emit signalThreadFinished();
-#endif
+    /* 发送信号，让子线程去执行计算任务 */
+    emit _asyncJob->signalStartTestBlockWritePerformance(ui->leSourceFile->text(), ui->leBlockFile->text(), alg, block_size);
 }
 
 

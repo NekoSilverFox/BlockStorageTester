@@ -1,6 +1,8 @@
 #ifndef DATABASESERVICE_H
 #define DATABASESERVICE_H
 
+#include "BlockInfo.h"
+
 #include <QObject>
 #include <QSqlDatabase>
 
@@ -30,6 +32,7 @@ public:
     int getHashRepeatTimes(const QString& tbName, const QByteArray& blockHash);
     bool updateCounter(const QString& tbName, const QByteArray& blockHash, int count);
     int getTableRowCount(const QString& tbName);
+    BlockInfo getBlockInfo(const QString& tbName, const QByteArray& blockHash);
 
     /* getter 方法*/
     QString getHost();

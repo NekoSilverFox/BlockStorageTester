@@ -34,7 +34,8 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel* lbRuningJobInfo = new QLabel(this);
     lbRuningJobInfo->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);  // 左对齐并垂直居中
     lbRuningJobInfo->setContentsMargins(12, 0, 0, 0);  // 布局边缘的空间
-    lbRuningJobInfo->setText("Running test Type:");
+    lbRuningJobInfo->setText("");
+    lbRuningJobInfo->setStyleSheet(ThemeStyle::LABLE_BLUE);
     ui->statusbar->addWidget(lbRuningJobInfo);
 
     QProgressBar* progressBar = new QProgressBar(this);
@@ -204,8 +205,10 @@ void MainWindow::setActivityWidget(const bool activity)
 
     ui->leSourceFile->setReadOnly(!activity);
     ui->leBlockFile->setReadOnly(!activity);
+    ui->leRecoverFile->setReadOnly(!activity);
     ui->btnSelectSourceFile->setEnabled(activity);
     ui->btnSelectBlockFile->setEnabled(activity);
+    ui->btnSelectRecoverFile->setEnabled(activity);
 
     ui->cbBlockSize->setEnabled(activity);
     ui->cbHashAlg->setEnabled(activity);

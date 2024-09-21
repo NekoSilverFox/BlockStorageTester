@@ -93,7 +93,7 @@ void AsyncComputeModule::dropCurrentDatabase()
 }
 
 /**
- * @brief AsyncComputeModule::finishJob 结束计算任务（将会结束改线程）
+ * @brief AsyncComputeModule::finishJob 结束计算任务（将会结束该线程）
  * @param drop_db 是否删除数据库
  */
 void AsyncComputeModule::finishJob(const bool drop_db)
@@ -123,7 +123,7 @@ void AsyncComputeModule::finishJob(const bool drop_db)
 void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path, const QString& block_file_path,
                                                 const HashAlg alg, const size_t block_size)
 {
-    emit signalWriteInfoLog(QString("Thread %1: Start test block write performance: Source file: %2; Hash-Block File: %3, Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), source_file_path, block_file_path,  QString::number(alg), QString::number(block_size)));
+    emit signalWriteInfoLog(QString("Thread %1: Start test block write performance: Source file: %2; Hash-Block File: %3, Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), source_file_path, block_file_path,  Hash::getHashName(alg), QString::number(block_size)));
 
     /* 为了避免意外操作，暂时禁用按钮 */
     emit signalSetActivityWidget(false);
@@ -259,14 +259,14 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
         ptr_loc += cur_block_size; // 移动指针位置
 
         /* 刷新 ui */
-        // if (0 == ptr_loc % 16 || fin->atEnd())
-        // {
-        emit signalSetProgressBarValue(ptr_loc);
-        emit signalSetLcdTotalHashBlocks(total_hash_blocks);
-        emit signalSetLcdTotalRepeatBlocks(QString("%1  Per:%2").arg(QString::number(total_repeat_times),
-                                                                     QString::number((double)total_repeat_times / file_blocks * 100, 'f', 2)));
-        emit signalSetLcdUseTime((double)(elapsed_time.elapsed() / 1000.0));
-        // }
+        if (0 == ptr_loc % 16 || fin->atEnd())
+        {
+            emit signalSetProgressBarValue(ptr_loc);
+            emit signalSetLcdTotalHashBlocks(total_hash_blocks);
+            emit signalSetLcdTotalRepeatBlocks(QString("%1  Per:%2").arg(QString::number(total_repeat_times),
+                                                                         QString::number((double)total_repeat_times / file_blocks * 100, 'f', 2)));
+            emit signalSetLcdUseTime((double)(elapsed_time.elapsed() / 1000.0));
+        }
     }
     blockFile.close();
 

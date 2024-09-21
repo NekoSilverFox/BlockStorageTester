@@ -431,7 +431,7 @@ int DatabaseService::getTableRowCount(const QString& tbName)
         return -1;
     }
     QString sql = QString("SELECT COUNT(*) FROM %1").arg(tbName);
-    QSqlQuery q;
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
 
     if (!q.exec(sql))
     {
@@ -447,6 +447,56 @@ int DatabaseService::getTableRowCount(const QString& tbName)
     }
 
     return 0;
+}
+
+
+/**
+ * @brief DatabaseService::getBlockInfo 根据块的哈希值获得块的信息（包含的信息可用于恢复源数据）
+ * @param tbName 表名
+ * @param blockHash 块的哈希值
+ * @return
+ */
+BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray &blockHash)
+{
+    if (!isDatabaseOpen())
+    {
+        return {"", 0, 0};
+    }
+
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
+
+    // 准备查询语句，根据 block_hash 查找对应的块信息
+    QString sql = QString("SELECT source_file_path, block_loc, block_size FROM %1 WHERE block_hash = :blockHash").arg(tbName);
+    _last_sql = sql;
+    q.prepare(sql);
+    q.bindValue(":blockHash", blockHash);
+
+    if (q.exec())
+    {
+        if (q.next())
+        {
+            // 提取查询结果并填充 BlockInfo 结构体
+            BlockInfo info;
+            info.filePath = q.value(0).toString();             // 获取 source_file_path
+            info.location = q.value(1).toLongLong();           // 获取 block_loc
+            info.size = q.value(2).toUInt();                   // 获取 block_size
+
+            _last_log = QString("Successfully retrieved block info from table %1, "
+                                "File: %2, Location: %3, Size: %4").arg(tbName, info.filePath, QString::number(info.location), QString::number(info.size));
+            return info;
+        }
+        else
+        {
+            _last_log = QString("No matching block found in table %1 with given hash").arg(tbName);
+        }
+    }
+    else
+    {
+        // 查询执行失败，记录错误日志
+        _last_log = QString("Failed to retrieve block info from table %1: %2").arg(tbName, q.lastError().text());
+    }
+
+    return {"", 0, 0};  // 查询失败或没有找到匹配记录时返回
 }
 
 

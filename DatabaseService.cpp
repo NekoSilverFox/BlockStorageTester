@@ -76,7 +76,7 @@ bool DatabaseService::connectDatabase(const QString& host, const int port, const
  */
 bool DatabaseService::isDatabaseOpen()
 {
-    if (_db.isValid() && _db.open())
+    if (_db.isValid() && _db.isOpen())
     {
         _last_log = "Database connected successfully!";
         return true;

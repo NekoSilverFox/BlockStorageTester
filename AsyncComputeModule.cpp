@@ -210,14 +210,16 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
     const size_t file_blocks = fin->fileSize() / block_size;// 文件一共会被分多少块
     emit signalSetLcdTotalFileBlocks(file_blocks);
 
+
     /* 计算耗时 */
     QElapsedTimer elapsed_time;
     elapsed_time.start();
+
     while (!fin->atEnd())
     {
         buf_block = fin->read(block_size);
         cur_block_size = buf_block.size();       // 计算当前读取的字节数，防止越界
-        buf_hash = Hash::getDataHash(buf_block, alg);  // 计算哈希
+        buf_hash = Hash::getDataHash(buf_block, alg);  // 计算哈希（非性能瓶颈）
 
         /* 写入数据库 */
         repeat_times = _dbs->getHashRepeatTimes(tb, buf_hash);
@@ -225,6 +227,7 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 #if !QT_NO_DEBUG
         qDebug() << _dbs->lastLog();
 #endif
+
         if (0 == repeat_times)  // 重复次数为 0 说明没有记录过当前哈希
         {
             ++total_hash_blocks;
@@ -242,21 +245,23 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
             buf_block.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
         qDebug() << "---------------------------------";
 #endif
+
         out << buf_hash;           // 记录哈希到文件
         ptr_loc += cur_block_size; // 移动指针位置
 
         /* 刷新 ui */
-        if (0 == ptr_loc % 16 || fin->atEnd())
-        {
+        // if (0 == ptr_loc % 16 || fin->atEnd())
+        // {
             emit signalSetProgressBarValue(ptr_loc);
             emit signalSetLcdTotalHashBlocks(total_hash_blocks);
-            emit signalSetLcdTotalRepeatBlocks(QString("%1  Per:%2").arg(total_repeat_times, (double)total_repeat_times / file_blocks));
+            emit signalSetLcdTotalRepeatBlocks(QString("%1  Per:%2").arg(QString::number(total_repeat_times),
+                                                                         QString::number((double)total_repeat_times / file_blocks * 100, 'f', 2)));
             emit signalSetLcdUseTime((double)(elapsed_time.elapsed() / 1000.0));
-        }
+        // }
     }
     blockFile.close();
 
-    _last_log = QString("Thread %1: Finish test writing performance, use time %2 sec").arg(getCurrentThreadID(), (double)(elapsed_time.elapsed() / 1000.0));
+    _last_log = QString("Thread %1: Finish test writing performance, use time %2 sec").arg(getCurrentThreadID(), QString::number((double)(elapsed_time.elapsed() / 1000.0)));
 
     emit signalWriteSuccLog(_last_log);
 

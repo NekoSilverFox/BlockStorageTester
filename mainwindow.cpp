@@ -66,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
     _asyncJob = new AsyncComputeModule();  // 一定不能给子线程任务增加 父对象！！
     _asyncJob->moveToThread(_threadAsyncJob);
     _threadAsyncJob->start();  // 通过 start() 被启动后，它通常处于等待操作系统调度的状态
-    _threadAsyncJob->setPriority(QThread::TimeCriticalPriority);
+    // _threadAsyncJob->setPriority(QThread::TimeCriticalPriority);
 
     connect(_asyncJob, &AsyncComputeModule::signalConnDb, _asyncJob, &AsyncComputeModule::connectDatabase);
     connect(_asyncJob, &AsyncComputeModule::signalDisconnDb, _asyncJob, &AsyncComputeModule::disconnectCurrentDatabase);

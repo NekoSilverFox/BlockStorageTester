@@ -81,7 +81,7 @@ qint64 InputFile::fileSize()
  */
 QString InputFile::filePath()
 {
-    return _info.path();
+    return _info.filePath();
 }
 
 

@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QThread>
 #include <QTimer>
+#include <QElapsedTimer>
 
 #include "InputFile.h"
 
@@ -123,7 +124,6 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 {
     emit signalWriteInfoLog(QString("Thread %1: Start test block write performance: Source file: %2; Hash-Block File: %3, Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), source_file_path, block_file_path,  QString::number(alg), QString::number(block_size)));
 
-
     /* 为了避免意外操作，暂时禁用按钮 */
     emit signalSetActivityWidget(false);
 
@@ -194,7 +194,8 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 
     /* 更新（初始化） UI 信息 */
     emit signalSetLbRuningJobInfo(QString("Job: Test write profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
-    emit signalSetProgressBar(0);
+    emit signalSetProgressBarRange(0, fin->fileSize());
+    emit signalSetProgressBarValue(0);
     emit signalSetLcdTotalFileBlocks((int)(fin->fileSize() / block_size));
 
     /**
@@ -207,10 +208,9 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
     size_t repeat_times = 0;    // 当前块的重复次数
     size_t total_repeat_times = 0;
 
-    /* 定时更新进度条 */
-    QTimer timer;
-    connect(&timer, &QTimer::timeout, this, [=](){ emit signalSetProgressBar(ptr_loc / fin->fileSize() * 100); });
-    timer.start(50);  // 启动定时器，参数为毫秒 ms
+    /* 计算耗时 */
+    QElapsedTimer elapsed_time;
+    elapsed_time.start();
 
     while (!fin->atEnd())
     {
@@ -226,7 +226,7 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 #endif
         if (0 == repeat_times)  // 重复次数为 0 说明没有记录过当前哈希
         {
-            _dbs->insertNewBlockInfoRow(tb, buf_hash,fin->filePath(), ptr_loc, cur_block_size);
+            _dbs->insertNewBlockInfoRow(tb, buf_hash, fin->filePath(), ptr_loc, cur_block_size);
         }
         else
         {
@@ -243,13 +243,14 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 #endif
         out << buf_hash;           // 记录哈希到文件
         ptr_loc += cur_block_size; // 移动指针位置
+        emit signalSetProgressBarValue(ptr_loc);
     }
     blockFile.close();
-    _last_log = QString("Thread %1: Finish test writing performance").arg(getCurrentThreadID());
+    _last_log = QString("Thread %1: Finish test writing performance, use time %2s").arg(getCurrentThreadID(), (double)(elapsed_time.elapsed() / 1000.0));
     emit signalWriteSuccLog(_last_log);
 
     /* 解锁按钮 */
-     emit signalSetActivityWidget(true);
+    emit signalSetActivityWidget(true);
 }
 
 QString AsyncComputeModule::getCurrentThreadID() const

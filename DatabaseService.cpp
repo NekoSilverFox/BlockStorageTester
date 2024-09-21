@@ -262,7 +262,7 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
  * @return
  */
 bool DatabaseService::insertNewBlockInfoRow(const QString& tbName, const QByteArray& blockHash,
-                                            const QString& sourceFilePath, const int blockLoc, const int blockSize) ///TODO 注意这里参数位置变了
+                                            const QString& sourceFilePath, const int blockLoc, const int blockSize)
 {
     if (!isDatabaseOpen())
     {

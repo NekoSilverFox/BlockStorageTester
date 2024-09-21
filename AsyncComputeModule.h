@@ -32,7 +32,8 @@ signals:
     void signalSetLbDBConnectedStyle(QString style);
     void signalSetActivityWidget(const bool activity);
     void signalSetLbRuningJobInfo(const QString& info);
-    void signalSetProgressBar(const int number);
+    void signalSetProgressBarValue(const int number);
+    void signalSetProgressBarRange(const int minimum, const int maximum);
     void signalSetLcdTotalFileBlocks(const int number);
 
     /* 日志信号 */

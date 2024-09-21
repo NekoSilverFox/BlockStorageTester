@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->statusbar->addWidget(lbRuningJobInfo);
 
     QProgressBar* progressBar = new QProgressBar(this);
+    progressBar->setMinimumWidth(200);
     progressBar->setRange(0, 100);
     progressBar->setValue(0);
     progressBar->setTextVisible(true);
@@ -62,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     /* 接收/处理子线程任务发出的信号 */
     _threadAsyncJob = new QThread(this);
+    _threadAsyncJob->setPriority(QThread::TimeCriticalPriority);
     _asyncJob = new AsyncComputeModule();  // 一定不能给子线程任务增加 父对象！！
     _asyncJob->moveToThread(_threadAsyncJob);
     _threadAsyncJob->start();  // 通过 start() 被启动后，它通常处于等待操作系统调度的状态
@@ -85,7 +87,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalSetLbDBConnectedStyle, this, &MainWindow::setLbDBConnectedStyle);
     connect(_asyncJob, &AsyncComputeModule::signalSetActivityWidget, this, &MainWindow::setActivityWidget);
     connect(_asyncJob, &AsyncComputeModule::signalSetLbRuningJobInfo, this, [=](const QString& info){lbRuningJobInfo->setText(info);});
-    connect(_asyncJob, &AsyncComputeModule::signalSetProgressBar, this, [=](const int number){progressBar->setValue(number);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetProgressBarValue, this, [=](const int number){progressBar->setValue(number);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetProgressBarRange, this, [=](const int minimum, const int maximum){progressBar->setRange(minimum, maximum);});
     connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalFileBlocks, this, [=](const int number){ui->lcdTotalFileBlocks->display(number);});
 
     connect(_asyncJob, &AsyncComputeModule::signalFinishJob, _asyncJob, &AsyncComputeModule::finishJob);

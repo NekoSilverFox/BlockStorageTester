@@ -24,6 +24,7 @@ public:
 
     /* 表相关操作 */
     bool createBlockInfoTable(const QString& tbName);
+    bool isTableExists(const QString& tbName);
     bool insertNewBlockInfoRow(const QString& tbName, const QByteArray& blockHash,
                                const QString& sourceFilePath, const int blockLoc, const int blockSize);
     int getHashRepeatTimes(const QString& tbName, const QByteArray& blockHash);

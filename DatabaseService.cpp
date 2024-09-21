@@ -251,6 +251,42 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
     return false;
 }
 
+/**
+ * @brief DatabaseService::isTableExists 指定表名的表是否存在
+ * @param tbName 表名
+ * @return 如果表存在，返回 true；否则返回 false
+ */
+bool DatabaseService::isTableExists(const QString &tbName)
+{
+    if (!isDatabaseOpen())
+    {
+        return false;
+    }
+
+    QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
+    QString sql = QString("SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+                          "WHERE table_schema = 'public' AND table_name = :table_name)");
+    _last_sql = sql;
+    q.prepare(sql);
+    q.bindValue(":table_name", tbName);
+
+    if (q.exec())
+    {
+        if (q.next())
+        {
+            // 如果表存在，返回 true；否则返回 false
+            bool exists = q.value(0).toBool();
+            _last_log = exists ? QString("Table %1 exists").arg(tbName)
+                               : QString("Table %1 does not exist").arg(tbName);
+            return exists;
+        }
+    }
+
+    // 如果查询失败，记录日志并返回 false
+    _last_log = QString("Failed to check is table %1 exists: %2").arg(tbName, q.lastError().text());
+    return false;
+}
+
 
 /**
  * @brief DatabaseService::insertNewBlockInfoRow 插入新的块信息行

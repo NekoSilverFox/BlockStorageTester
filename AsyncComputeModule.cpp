@@ -101,6 +101,7 @@ void AsyncComputeModule::finishJob(const bool drop_db)
     if (drop_db)
     {
         dropCurrentDatabase();
+        qDebug() << _last_log;
     }
     disconnectCurrentDatabase();
     emit signalFinished();
@@ -177,20 +178,28 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 
 
     /* 创建表 */
-    QString tb = QString("tb_%1bytes_%2").arg(QString::number(block_size), Hash::getHashName(alg)).toLower();
-    emit signalWriteInfoLog(QString("Thread %1: Create table `%2`").arg(getCurrentThreadID(), tb));
-    is_succ = _dbs->createBlockInfoTable(tb);
-    emit signalWriteInfoLog(QString("Thread %1: Run SQL `%2`").arg(getCurrentThreadID(), _dbs->lastSQL()));
-    _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog());
-    if (!is_succ)
+    QString tb = getTableName(block_size, alg);
+    bool is_exists = _dbs->isTableExists(tb);
+    if (is_exists)
     {
-        emit signalWriteErrorLog(_last_log);
-        emit signalErrorBox(_last_log);
-
-        emit signalSetActivityWidget(true);
-        return;
+        emit signalWriteWarningLog(QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog()));
     }
-    emit signalWriteSuccLog(_last_log);
+    else
+    {
+        emit signalWriteInfoLog(QString("Thread %1: Create table `%2`").arg(getCurrentThreadID(), tb));
+        is_succ = _dbs->createBlockInfoTable(tb);
+        emit signalWriteInfoLog(QString("Thread %1: Run SQL `%2`").arg(getCurrentThreadID(), _dbs->lastSQL()));
+        _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog());
+        if (!is_succ)
+        {
+            emit signalWriteErrorLog(_last_log);
+            emit signalErrorBox(_last_log);
+
+            emit signalSetActivityWidget(true);
+            return;
+        }
+        emit signalWriteSuccLog(_last_log);
+    }
 
     /* 更新（初始化） UI 信息 */
     emit signalSetLbRuningJobInfo(QString("Job: Test write profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
@@ -252,11 +261,11 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
         /* 刷新 ui */
         // if (0 == ptr_loc % 16 || fin->atEnd())
         // {
-            emit signalSetProgressBarValue(ptr_loc);
-            emit signalSetLcdTotalHashBlocks(total_hash_blocks);
-            emit signalSetLcdTotalRepeatBlocks(QString("%1  Per:%2").arg(QString::number(total_repeat_times),
-                                                                         QString::number((double)total_repeat_times / file_blocks * 100, 'f', 2)));
-            emit signalSetLcdUseTime((double)(elapsed_time.elapsed() / 1000.0));
+        emit signalSetProgressBarValue(ptr_loc);
+        emit signalSetLcdTotalHashBlocks(total_hash_blocks);
+        emit signalSetLcdTotalRepeatBlocks(QString("%1  Per:%2").arg(QString::number(total_repeat_times),
+                                                                     QString::number((double)total_repeat_times / file_blocks * 100, 'f', 2)));
+        emit signalSetLcdUseTime((double)(elapsed_time.elapsed() / 1000.0));
         // }
     }
     blockFile.close();
@@ -272,5 +281,16 @@ void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path,
 QString AsyncComputeModule::getCurrentThreadID() const
 {
     return QString::number(reinterpret_cast<quintptr>(QThread::currentThreadId()), 16);
+}
+
+/**
+ * @brief AsyncComputeModule::getTableName 根据算法和块大小构建表名
+ * @param block_size 块大小
+ * @param alg 哈希算法
+ * @return
+ */
+QString AsyncComputeModule::getTableName(const size_t block_size, const HashAlg alg)
+{
+    return QString("tb_%1bytes_%2").arg(QString::number(block_size), Hash::getHashName(alg)).toLower();
 }
 

@@ -65,6 +65,7 @@ signals:
 
 private:
     QString getCurrentThreadID() const;
+    QString getTableName(const size_t block_size, const HashAlg alg);
 
 private:
     DatabaseService* _dbs; // 当前操作的数据库对象

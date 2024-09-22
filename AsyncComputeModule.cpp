@@ -259,8 +259,8 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
         qDebug() << "---------------------------------";
 #endif
 
-        out << buf_hash;           // 记录哈希到文件
-        qDebug() << buf_hash.toHex();   ///TODO
+        // out << buf_hash;           // 记录哈希到文件【注意】通过 `<<` QDataStream 写入时，QDataStream 会在字符串的前面写入一个4字节的长度字段，表示接下来数据的长度
+        out.writeRawData(buf_hash, buf_hash.size());
         ptr_loc += cur_block_size; // 移动指针位置
 
         /* 刷新 ui */
@@ -286,7 +286,13 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     emit signalTestSegmentationPerformanceFinished(true);
 }
 
-
+/**
+ * @brief AsyncComputeModule::runTestRecoverProfmance 子线程开始恢复文件
+ * @param recover_file_path  要恢复至的文件的文件名
+ * @param block_file_path 存储哈希块的文件
+ * @param alg 哈希算法
+ * @param block_size 块大小
+ */
 void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size)
 {
     emit signalWriteInfoLog(QString("Thread %1: Start test block recover performance: "
@@ -371,12 +377,12 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     elapsed_time.start();
 
     /* 其他用于恢复原信息需要用到的对象 */
-    InputFile* sourceFile = nullptr;            // 用于读取源文件
+    InputFile* curSourceFile = nullptr;            // 用于读取源文件
     BlockInfo cur_block_info;
     const size_t hash_size = Hash::getHashSize(alg);  // 获取哈希块文件中，每个哈希的长度（这个长度是固定的）
     QByteArray buf_hash;                        // 用于读取块文件中存储的哈希值，读取的长度为 hash_size
     size_t total_cant_revcover = 0;             // 无法恢复块的数量（数据库中没记录这个块）
-    const QByteArray blank_block(hash_size, '\0'); // 如果没找到这个哈希值的源数据块，用这个全是 0 的数据填充 '\0' 是 ASCII 表中的空字符，对应二进制 0
+    const QByteArray blank_block(block_size, '\0'); // 如果没找到这个哈希值的源数据块，用这个全是 0 的数据填充 '\0' 是 ASCII 表中的空字符，对应二进制 0
 
     emit signalWriteInfoLog(QString("Thread %1: Start test recover profmance<br>"
                                     "from Hash-Block-File: %2, Size: %3<br>"
@@ -388,41 +394,55 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
 
     while (!fin->atEnd())
     {
-        /* 更新 ui */
-        emit signalSetProgressBarValue(fin->curPtrPostion());
-        qDebug() << "fin->curPtrPostion(): " << fin->curPtrPostion();
-
         buf_hash = fin->read(hash_size);
         cur_block_info = _dbs->getBlockInfo(tb, buf_hash);
+#if !QT_NO_DEBUG
+        qDebug() << "\n[AsyncComputeModule::runTestRecoverProfmance] Read Hash: " << buf_hash.toHex() << "\nIn source: " << cur_block_info.filePath << "\nLoction: " << cur_block_info.location << " Size: " << cur_block_info.size;
+#endif
+        /* 更新 ui */
+        emit signalSetProgressBarValue(fin->curPtrPostion());
 
         /* 数据库中没有记录当前块 */
         if (0 == cur_block_info.size)
         {
             _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog());
             ++total_cant_revcover;
-            out << blank_block;
+            // out << blank_block;
+            out.writeRawData(blank_block, block_size);
 
-            // emit signalWriteWarningLog(_last_log);
+            emit signalWriteWarningLog(_last_log);
+#if !QT_NO_DEBUG
             qDebug() << _last_log;
+#endif
             continue;
         }
 
         /* 如果数据库中记录了当前块
          * 更新要读取源数据的源文件
          *  （这里可以优化，比如将数据表中的数据按照文件路径排序） */
-        if (nullptr == sourceFile || sourceFile->filePath() != cur_block_info.filePath)
+        if (nullptr == curSourceFile || curSourceFile->filePath() != cur_block_info.filePath)
         {
-            delete sourceFile;
-            sourceFile = new InputFile(nullptr, cur_block_info.filePath);
-            _last_log = QString("Thread %1: Open other source file").arg(getCurrentThreadID());
-            qDebug() << _last_log;
+            delete curSourceFile;
+            curSourceFile = new InputFile(nullptr, cur_block_info.filePath);
+            _last_log = QString("Thread %1: Open source file %2").arg(getCurrentThreadID(), cur_block_info.filePath);
         }
-        out << fin->readFrom(cur_block_info.location, cur_block_info.size);
+        // out << fin->readFrom(cur_block_info.location, cur_block_info.size);
+        out.writeRawData(curSourceFile->readFrom(cur_block_info.location, cur_block_info.size), cur_block_info.size);
+#if !QT_NO_DEBUG
+        qDebug() << _last_log << "\nRecover data: " << curSourceFile->readFrom(cur_block_info.location, cur_block_info.size);
+#endif
     }
+    /* 恢复率及用时 */
+    const size_t block_number = fin->fileSize() / hash_size;
+    const double recovery_rate = (1.00 - (double)total_cant_revcover / block_number) * 100;
+    const double use_time = (double)(elapsed_time.elapsed() / 1000.0);  // sec
+
     recoverFile.close();
     delete fin;
 
-    _last_log = QString("Thread %1: Successful recovery file to %2, number of unrecoverable blocks %3, use time: %4 sec").arg(getCurrentThreadID(), recover_file_path, QString::number(total_cant_revcover), QString::number((double)(elapsed_time.elapsed() / 1000.0)));
+    _last_log = QString("Thread %1: Successful recovery file to %2<br>"
+                        "Number of unrecoverable blocks %3/%4, Recovery rate %5\%,"
+                        "Use time: %6 sec").arg(getCurrentThreadID(), recover_file_path, QString::number(total_cant_revcover), QString::number(block_number), QString::number(recovery_rate, 'f', 2), QString::number(use_time));
     emit signalWriteSuccLog(_last_log);
 
     /* 解锁按钮 */

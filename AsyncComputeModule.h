@@ -25,6 +25,7 @@ public:
 
     /* 计算任务 */
     void runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
+    void runTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
 
 
 signals:
@@ -60,8 +61,9 @@ signals:
     void signalDropCurDb();
 
     /* 计算任务信号 */
-    void signalStartTestSegmentationPerformance(const QString& source_file_path, const QString& block_file_path,
+    void signalRunTestSegmentationPerformance(const QString& source_file_path, const QString& block_file_path,
                                               const HashAlg alg, const size_t block_size);
+    void signalRunTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
 
 private:
     QString getCurrentThreadID() const;

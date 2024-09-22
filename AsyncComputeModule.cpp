@@ -123,7 +123,7 @@ void AsyncComputeModule::finishJob(const bool drop_db)
 void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path,
                                                 const HashAlg alg, const size_t block_size)
 {
-    emit signalWriteInfoLog(QString("Thread %1: Start test block write performance: Source file: %2; Hash-Block File: %3, Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), source_file_path, block_file_path,  Hash::getHashName(alg), QString::number(block_size)));
+    emit signalWriteInfoLog(QString("Thread %1: Start test block segmentation performance: Source file: %2; Hash-Block File: %3, Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), source_file_path, block_file_path,  Hash::getHashName(alg), QString::number(block_size)));
 
     /* 为了避免意外操作，暂时禁用按钮 */
     emit signalSetActivityWidget(false);
@@ -178,7 +178,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
 
 
     /* 创建表 */
-    QString tb = getTableName(block_size, alg);
+    QString tb = getTableName(block_size, alg);  // 根据算法和块大小自动创建表名
     bool is_exists = _dbs->isTableExists(tb);
     if (is_exists)
     {
@@ -202,7 +202,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     }
 
     /* 更新（初始化） UI 信息 */
-    emit signalSetLbRuningJobInfo(QString("Job: Test write profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
+    emit signalSetLbRuningJobInfo(QString("Job: Test segmentation profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
     emit signalSetProgressBarRange(0, fin->fileSize());
     emit signalSetProgressBarValue(0);
 
@@ -269,6 +269,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
         }
     }
     blockFile.close();
+    delete fin;
 
     _last_log = QString("Thread %1: Finish test writing performance, use time %2 sec").arg(getCurrentThreadID(), QString::number((double)(elapsed_time.elapsed() / 1000.0)));
 
@@ -276,6 +277,133 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
 
     /* 解锁按钮 */
     emit signalSetActivityWidget(true);
+}
+
+
+void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size)
+{
+    emit signalWriteInfoLog(QString("Thread %1: Start test block recover performance: "
+                                    "Recover to file: %2; Hash-Block File: %3,"
+                                    "Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), recover_file_path, block_file_path,  Hash::getHashName(alg), QString::number(block_size)));
+
+    /* 为了避免意外操作，暂时禁用按钮 */
+    emit signalSetActivityWidget(false);
+
+    /* 数据库无连接 */
+    if (!_dbs->isDatabaseOpen())
+    {
+        _last_log = QString("Thread %1: Database do not connected, test exit").arg(getCurrentThreadID());
+        emit signalWriteErrorLog(_last_log);
+        emit signalWarnBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        return;
+    }
+
+    /* 打开块文件（输入） */
+    InputFile* fin = new InputFile(this, block_file_path);
+    bool is_succ = fin->isOpen();
+    _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), fin->lastLog());
+    if (!is_succ)
+    {
+        emit signalWriteErrorLog(_last_log);
+        emit signalErrorBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        return;
+    }
+    emit signalWriteSuccLog(_last_log);
+
+    /* 创建恢复的文件（输出） */
+    QFile recoverFile(recover_file_path);
+    QFileInfo recoverFileInfo;
+    QDataStream out;
+    if (recoverFile.open(QIODevice::WriteOnly))
+    {
+        out.setDevice(&recoverFile);
+        out.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
+        recoverFileInfo.setFile(recoverFile);
+
+        _last_log = QString("Thread %1: Successed create Recover-Block %2").arg(getCurrentThreadID(), recoverFileInfo.filePath());
+        emit signalWriteSuccLog(_last_log);
+    }
+    else
+    {
+        _last_log = QString("Thread %1: Can not create Recover-Block %2").arg(getCurrentThreadID(), recoverFileInfo.filePath());
+        emit signalWriteErrorLog(_last_log);
+        emit signalErrorBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        return;
+    }
+
+    /* 根据哈希值和块大小判断要读取的表是否存在 */
+    QString tb = getTableName(block_size, alg);
+    if (!_dbs->isTableExists(tb))
+    {
+        _last_log = QString("Thread %1: Exit Test Recover Profmance: %2").arg(getCurrentThreadID(), _dbs->lastLog());
+        emit signalWriteErrorLog(_last_log);
+
+        emit signalSetActivityWidget(true);
+        return;
+    }
+    _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog());
+    emit signalWriteSuccLog(_last_log);
+
+    /* 更新（初始化） UI 信息 TODO */
+    emit signalSetLbRuningJobInfo(QString("Job: Test recover profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
+    emit signalSetProgressBarRange(0, fin->fileSize());  // 以读取块文件的指针位置作为进度
+    emit signalSetProgressBarValue(0);
+
+    /* 计算耗时 */
+    QElapsedTimer elapsed_time;
+    elapsed_time.start();
+
+    /* 其他用于恢复原信息需要用到的对象 */
+    emit signalWriteInfoLog(QString("Thread %1: Start test recover profmance<br>"
+                                    "from Hash-Block-File %2<br>"
+                                    "to Recover-File %3<br>"
+                                    "with:<br>"
+                                    "Hash alg: %4<br>"
+                                    "Block size: %5<br>"
+                                    "DB-Table: %6").arg(getCurrentThreadID(), block_file_path, recover_file_path, Hash::getHashName(alg), QString::number(block_size), tb));
+    InputFile* sourceFile = nullptr;            // 用于读取源文件
+    BlockInfo cur_block_info;
+    const size_t hash_size = Hash::getHashSize(alg);  // 获取哈希块文件中，每个哈希的长度（这个长度是固定的）
+    QByteArray buf_hash;                        // 用于读取块文件中存储的哈希值，读取的长度为 hash_size
+    size_t total_cant_revcover = 0;             // 无法恢复块的数量（数据库中没记录这个块）
+    const QByteArray blank_block(hash_size, '\0'); // 如果没找到这个哈希值的源数据块，用这个全是 0 的数据填充 '\0' 是 ASCII 表中的空字符，对应二进制 0
+    while (!fin->atEnd())
+    {
+        buf_hash = fin->read(hash_size);
+        cur_block_info = _dbs->getBlockInfo(tb, buf_hash);
+
+        /* 数据库中没有记录当前块 */
+        if (0 == cur_block_info.size)
+        {
+            _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog());
+            ++total_cant_revcover;
+            out << blank_block;
+
+            emit signalWriteWarningLog(_last_log);
+            continue;
+        }
+
+        /* 如果数据库中记录了当前块
+         * 更新要读取源数据的源文件
+         *  （这里可以优化，比如将数据表中的数据按照文件路径排序） */
+        if (sourceFile == nullptr || sourceFile->filePath() != cur_block_info.filePath)
+        {
+            delete sourceFile;
+            sourceFile = new InputFile(nullptr, cur_block_info.filePath);
+        }
+        out << fin->readFrom(cur_block_info.location, cur_block_info.size);
+    }
+    _last_log = QString("Thread %1: Successful recovery file to %2, number of unrecoverable blocks %3, use time: %4 sec").arg(getCurrentThreadID(), recover_file_path, QString::number(total_cant_revcover), QString::number((double)(elapsed_time.elapsed() / 1000.0)));
+    emit signalWriteSuccLog(_last_log);
+
+    recoverFile.close();
+    delete fin;
 }
 
 QString AsyncComputeModule::getCurrentThreadID() const

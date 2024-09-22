@@ -60,6 +60,24 @@ QByteArray InputFile::read(const qint64 maxlen)
     return _file.read(maxlen);
 }
 
+/**
+ * @brief InputFile::readFrom 从指定位置读取指定数量的字节
+ * @param position 位置
+ * @param maxlen 读取的字节
+ * @return
+ */
+QByteArray InputFile::readFrom(const qint64 location, const qint64 maxlen)
+{
+    // 移动文件指针到指定的位置
+    if (!_file.seek(location))
+    {
+        _last_log = "Unable to move file pointer to specified location";
+        return nullptr;
+    }
+
+    return _file.read(maxlen);
+}
+
 bool InputFile::atEnd()
 {
     return _file.atEnd();

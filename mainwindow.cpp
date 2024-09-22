@@ -75,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalDbConnState, this, &MainWindow::asyncJobDbConnStateChanged);
     connect(_asyncJob, &AsyncComputeModule::signalDropCurDb, _asyncJob, &AsyncComputeModule::dropCurrentDatabase);
 
-    connect(_asyncJob, &AsyncComputeModule::signalStartTestSegmentationPerformance, _asyncJob, &AsyncComputeModule::runTestSegmentationProfmance);
+    connect(_asyncJob, &AsyncComputeModule::signalRunTestSegmentationPerformance, _asyncJob, &AsyncComputeModule::runTestSegmentationProfmance);
 
     connect(_asyncJob, &AsyncComputeModule::signalWriteInfoLog, this, &MainWindow::writeInfoLog);
     connect(_asyncJob, &AsyncComputeModule::signalWriteWarningLog, this, &MainWindow::writeWarningLog);
@@ -337,7 +337,7 @@ void MainWindow::autoConnectionDBModule()
 }
 
 /**
- * @brief MainWindow::startTestSegmentationPerformance 测试分块分割性能
+ * @brief MainWindow::startTestSegmentationPerformance 测试分块分割性能（会发送信号让子线程实际的去执行计算任务）
  */
 void MainWindow::startTestSegmentationPerformance()
 {
@@ -358,21 +358,21 @@ void MainWindow::startTestSegmentationPerformance()
     writeInfoLog(QString("Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
 
     /* 发送信号，让子线程去执行计算任务 */
-    emit _asyncJob->signalStartTestSegmentationPerformance(ui->leSourceFile->text(), ui->leBlockFile->text(), alg, block_size);
+    emit _asyncJob->signalRunTestSegmentationPerformance(ui->leSourceFile->text(), ui->leBlockFile->text(), alg, block_size);
 }
 
 /**
- * @brief MainWindow::startTestRecoverPerformance 测试分块恢复性能
+ * @brief MainWindow::startTestRecoverPerformance 测试分块恢复性能（会发送信号让子线程实际的去执行计算任务）
  */
 void MainWindow::startTestRecoverPerformance()
 {
     setActivityWidget(false);
     writeInfoLog("Start Test Recover Performance");
     /* 没有选择文件或保存路径 */
-    if (ui->leSourceFile->text().isEmpty() || ui->leRecoverFile->text().isEmpty())
+    if (ui->leBlockFile->text().isEmpty() || ui->leRecoverFile->text().isEmpty())
     {
-        writeErrorLog("↳ Source file or Recover file path is empty");
-        QMessageBox::warning(this, "Warning", "Source file or Recover file path is empty!");
+        writeErrorLog("↳ Block file or Recover file path is empty");
+        QMessageBox::warning(this, "Warning", "Block file or Recover file path is empty!");
         setActivityWidget(true);
         return;
     }
@@ -383,7 +383,7 @@ void MainWindow::startTestRecoverPerformance()
     writeInfoLog(QString("Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
 
     /* 发送信号，让子线程去执行计算任务 */
-
+    emit _asyncJob->signalRunTestRecoverProfmance(ui->leRecoverFile->text(), ui->leBlockFile->text(), alg, block_size);
 }
 
 

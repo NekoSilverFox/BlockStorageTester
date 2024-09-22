@@ -21,6 +21,7 @@ public:
     bool isOpen();
     QDataStream& sin();
     QByteArray read(const qint64 maxlen);
+    QByteArray readFrom(const qint64 location, const qint64 maxlen);
     bool atEnd();
     qint64 fileSize();
     QString filePath();

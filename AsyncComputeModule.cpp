@@ -123,7 +123,7 @@ void AsyncComputeModule::finishAllJob(const bool drop_db)
 void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path,
                                                 const HashAlg alg, const size_t block_size)
 {
-    emit signalWriteInfoLog(QString("Thread %1: Start test block segmentation performance: Source file: %2; Hash-Block File: %3, Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), source_file_path, block_file_path,  Hash::getHashName(alg), QString::number(block_size)));
+    emit signalWriteInfoLog(QString("Thread %1: Start test block segmentation performance").arg(getCurrentThreadID()));
 
     /* 为了避免意外操作，暂时禁用按钮 */
     emit signalSetActivityWidget(false);
@@ -206,6 +206,10 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     }
 
     /* 更新（初始化） UI 信息 */
+    emit signalWriteInfoLog(QString("Thread %1: "
+                                    "From Source-File: %2, Size: %3<br>"
+                                    "to Hash-Block File: %4 and Table: %5<br>"
+                                    "with Hash-Alg: %6, Segmentation-Block-Size: %7 Bytes").arg(getCurrentThreadID(), fin->filePath(), QString::number(fin->fileSize()), blockInfo.filePath(), tb, Hash::getHashName(alg), QString::number(block_size)));
     emit signalSetLbRuningJobInfo(QString("Job: Test segmentation profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
     emit signalSetProgressBarRange(0, fin->fileSize());
     emit signalSetProgressBarValue(0);
@@ -220,7 +224,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     size_t repeat_times = 0;    // 当前块的重复次数
     size_t total_repeat_times = 0;
     size_t total_hash_blocks = 0;
-    const size_t file_blocks = fin->fileSize() / block_size;// 文件一共会被分多少块
+    const size_t file_blocks = (fin->fileSize() + block_size - 1) / block_size; // 文件一共会被分多少块由于可能除不尽，这里使用简单的向上取整算法
     emit signalSetLcdTotalFileBlocks(file_blocks);
 
 
@@ -295,9 +299,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
  */
 void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size)
 {
-    emit signalWriteInfoLog(QString("Thread %1: Start test block recover performance: "
-                                    "Recover to file: %2; Hash-Block File: %3,"
-                                    "Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), recover_file_path, block_file_path,  Hash::getHashName(alg), QString::number(block_size)));
+    emit signalWriteInfoLog(QString("Thread %1: Start test block recover performance").arg(getCurrentThreadID()));
 
     /* 为了避免意外操作，暂时禁用按钮 */
     emit signalSetActivityWidget(false);
@@ -367,12 +369,8 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog());
     emit signalWriteSuccLog(_last_log);
 
-    /* 更新（初始化） UI 信息 TODO */
-    emit signalSetLbRuningJobInfo(QString("Job: Test recover profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
-    emit signalSetProgressBarRange(0, fin->fileSize());  // 以读取块文件的指针位置作为进度
-    emit signalSetProgressBarValue(0);
 
-    /* 计算耗时 */
+    /* 计算耗时，这里 QTime 不起作用，因为开始计算后线程一只处于阻塞状态 */
     QElapsedTimer elapsed_time;
     elapsed_time.start();
 
@@ -380,17 +378,22 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     InputFile* curSourceFile = nullptr;            // 用于读取源文件
     BlockInfo cur_block_info;
     const size_t hash_size = Hash::getHashSize(alg);  // 获取哈希块文件中，每个哈希的长度（这个长度是固定的）
+    const size_t block_number = fin->fileSize() / hash_size;  // .hbk 文件中记录的哈希记录条数，也就是源文件有几个块
     QByteArray buf_hash;                        // 用于读取块文件中存储的哈希值，读取的长度为 hash_size
     size_t total_cant_revcover = 0;             // 无法恢复块的数量（数据库中没记录这个块）
     const QByteArray blank_block(block_size, '\0'); // 如果没找到这个哈希值的源数据块，用这个全是 0 的数据填充 '\0' 是 ASCII 表中的空字符，对应二进制 0
 
-    emit signalWriteInfoLog(QString("Thread %1: Start test recover profmance<br>"
-                                    "from Hash-Block-File: %2, Size: %3<br>"
-                                    "to Recover-File: %4<br>"
-                                    "with:<br>"
+    /* 更新（初始化） UI 信息 TODO */
+    emit signalWriteInfoLog(QString("Thread %1: "
+                                    "From Hash-Block-File: %2, Size: %3<br>"
+                                    "To Recover-File: %4<br>"
+                                    "With:<br>"
                                     "Hash alg: %5, Hash-Length: %6<br>"
                                     "Every recover block size: %7<br>"
                                     "DB-Table: %8").arg(getCurrentThreadID(), fin->filePath(), QString::number(fin->fileSize()), recoverFileInfo.filePath(), Hash::getHashName(alg), QString::number(hash_size), QString::number(block_size), tb));
+    emit signalSetLbRuningJobInfo(QString("Job: Test recover profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
+    emit signalSetProgressBarRange(0, fin->fileSize());  // 以读取块文件的指针位置作为进度
+    emit signalSetProgressBarValue(0);
 
     while (!fin->atEnd())
     {
@@ -433,7 +436,6 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
 #endif
     }
     /* 恢复率及用时 */
-    const size_t block_number = fin->fileSize() / hash_size;
     const double recovery_rate = (1.00 - (double)total_cant_revcover / block_number) * 100;
     const double use_time = (double)(elapsed_time.elapsed() / 1000.0);  // sec
 

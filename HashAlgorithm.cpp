@@ -60,6 +60,23 @@ QString Hash::getHashName(const HashAlg alg)
  */
 size_t Hash::getHashSize(const HashAlg alg)
 {
-    if(alg) return 1;
-    return 0;
+    QByteArray data = "FOOOOOOOOOX";
+
+    switch (alg) {
+    case HashAlg::MD5:
+        return getDataHash(data, HashAlg::MD5).size();
+
+    case HashAlg::SHA1:
+        return getDataHash(data, HashAlg::SHA1).size();
+
+    case HashAlg::SHA256:
+        return getDataHash(data, HashAlg::SHA256).size();
+
+    case HashAlg::SHA512:
+        return getDataHash(data, HashAlg::SHA512).size();
+
+    default:
+        return 0;
+        break;
+    }
 }

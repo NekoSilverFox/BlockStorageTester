@@ -24,7 +24,7 @@ public:
     void finishJob(const bool drop_db);
 
     /* 计算任务 */
-    void runBlockWriteProfmance(const QString& source_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
+    void runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
 
 
 signals:
@@ -60,7 +60,7 @@ signals:
     void signalDropCurDb();
 
     /* 计算任务信号 */
-    void signalStartTestBlockWritePerformance(const QString& source_file_path, const QString& block_file_path,
+    void signalStartTestSegmentationPerformance(const QString& source_file_path, const QString& block_file_path,
                                               const HashAlg alg, const size_t block_size);
 
 private:

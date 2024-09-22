@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
     connect(ui->btnSelectRecoverFile, &QPushButton::clicked, this, &MainWindow::selectRecoverFile);
 
-    connect(ui->btnRunTest, &QPushButton::clicked, this, &MainWindow::testBlockWritePerformanceModule);
+    connect(ui->btnRunTest, &QPushButton::clicked, this, &MainWindow::startTestSegmentationPerformance);
 
 
     /* 接收/处理子线程任务发出的信号 */
@@ -75,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalDbConnState, this, &MainWindow::asyncJobDbConnStateChanged);
     connect(_asyncJob, &AsyncComputeModule::signalDropCurDb, _asyncJob, &AsyncComputeModule::dropCurrentDatabase);
 
-    connect(_asyncJob, &AsyncComputeModule::signalStartTestBlockWritePerformance, _asyncJob, &AsyncComputeModule::runBlockWriteProfmance);
+    connect(_asyncJob, &AsyncComputeModule::signalStartTestSegmentationPerformance, _asyncJob, &AsyncComputeModule::runTestSegmentationProfmance);
 
     connect(_asyncJob, &AsyncComputeModule::signalWriteInfoLog, this, &MainWindow::writeInfoLog);
     connect(_asyncJob, &AsyncComputeModule::signalWriteWarningLog, this, &MainWindow::writeWarningLog);
@@ -336,10 +336,13 @@ void MainWindow::autoConnectionDBModule()
     emit _asyncJob->signalConnDb(host, port, driver, user, password, dbName);
 }
 
-
-void MainWindow::testBlockWritePerformanceModule()
+/**
+ * @brief MainWindow::startTestSegmentationPerformance 测试分块分割性能
+ */
+void MainWindow::startTestSegmentationPerformance()
 {
     setActivityWidget(false);
+    writeInfoLog("Start Test Segmentation Performance");
     /* 没有选择文件或保存路径 */
     if (ui->leSourceFile->text().isEmpty() || ui->leBlockFile->text().isEmpty())
     {
@@ -355,7 +358,32 @@ void MainWindow::testBlockWritePerformanceModule()
     writeInfoLog(QString("Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
 
     /* 发送信号，让子线程去执行计算任务 */
-    emit _asyncJob->signalStartTestBlockWritePerformance(ui->leSourceFile->text(), ui->leBlockFile->text(), alg, block_size);
+    emit _asyncJob->signalStartTestSegmentationPerformance(ui->leSourceFile->text(), ui->leBlockFile->text(), alg, block_size);
+}
+
+/**
+ * @brief MainWindow::startTestRecoverPerformance 测试分块恢复性能
+ */
+void MainWindow::startTestRecoverPerformance()
+{
+    setActivityWidget(false);
+    writeInfoLog("Start Test Recover Performance");
+    /* 没有选择文件或保存路径 */
+    if (ui->leSourceFile->text().isEmpty() || ui->leRecoverFile->text().isEmpty())
+    {
+        writeErrorLog("↳ Source file or Recover file path is empty");
+        QMessageBox::warning(this, "Warning", "Source file or Recover file path is empty!");
+        setActivityWidget(true);
+        return;
+    }
+
+    /* 获取读取的信息（块大小和算法） */
+    const size_t block_size = ui->cbBlockSize->currentText().toInt();  // 每个块的大小(Byte)
+    const HashAlg alg = HashAlg(ui->cbHashAlg->currentIndex());
+    writeInfoLog(QString("Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
+
+    /* 发送信号，让子线程去执行计算任务 */
+
 }
 
 

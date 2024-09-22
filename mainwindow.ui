@@ -395,21 +395,6 @@
               <string notr="true">SHA512</string>
              </property>
             </item>
-            <item>
-             <property name="text">
-              <string notr="true">tiger128</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">tiger32</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">murmur3_126</string>
-             </property>
-            </item>
            </widget>
           </item>
           <item>

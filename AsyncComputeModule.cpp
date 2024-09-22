@@ -114,13 +114,13 @@ void AsyncComputeModule::finishJob(const bool drop_db)
 }
 
 /**
- * @brief AsyncComputeModule::runBlockWriteProfmance 将源文件分块，计算哈希，然后写入数据库和文件
+ * @brief AsyncComputeModule::runTestSegmentationProfmance 将源文件分块，计算哈希，然后写入数据库和文件
  * @param source_file_path 源文件路径
  * @param block_file_path 分块后记录源文件块哈希的文件
  * @param alg 哈希算法
  * @param block_size 块大小（Byte）
  */
-void AsyncComputeModule::runBlockWriteProfmance(const QString& source_file_path, const QString& block_file_path,
+void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path,
                                                 const HashAlg alg, const size_t block_size)
 {
     emit signalWriteInfoLog(QString("Thread %1: Start test block write performance: Source file: %2; Hash-Block File: %3, Hash-Alg: %4, Block Size: %5 Bytes").arg(getCurrentThreadID(), source_file_path, block_file_path,  Hash::getHashName(alg), QString::number(block_size)));

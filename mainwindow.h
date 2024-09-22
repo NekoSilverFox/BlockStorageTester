@@ -24,7 +24,8 @@ public:
     void writeErrorLog(const QString& msg);
     void writeSuccLog(const QString& msg);
 
-    void testBlockWritePerformanceModule();  // 测试分块写入性能
+    void startTestSegmentationPerformance();  // 测试分块分割（segmentation）写入性能
+    void startTestRecoverPerformance();  // 测试分块恢复性能
 
     /* 数据库链接指示灯 */
     void setLbDBConnectedStyle(QString style);

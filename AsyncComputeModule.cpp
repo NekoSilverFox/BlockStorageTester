@@ -26,7 +26,7 @@ AsyncComputeModule::~AsyncComputeModule()
     }
     delete _dbs;
 
-    emit signalFinished();
+    emit signalAllJobFinished();
 }
 
 /**
@@ -93,10 +93,10 @@ void AsyncComputeModule::dropCurrentDatabase()
 }
 
 /**
- * @brief AsyncComputeModule::finishJob 结束计算任务（将会结束该线程）
+ * @brief AsyncComputeModule::finishAllJob 结束计算任务（将会结束该线程）
  * @param drop_db 是否删除数据库
  */
-void AsyncComputeModule::finishJob(const bool drop_db)
+void AsyncComputeModule::finishAllJob(const bool drop_db)
 {
     if (drop_db)
     {
@@ -104,9 +104,9 @@ void AsyncComputeModule::finishJob(const bool drop_db)
         qDebug() << _last_log;
     }
     disconnectCurrentDatabase();
-    emit signalFinished();
+    emit signalAllJobFinished();
 
-    _last_log = "Send signal AsyncComputeModule::signalFinished()";
+    _last_log = "Send signal AsyncComputeModule::signalAllJobFinished()";
 #if !QT_NO_DEBUG
     qDebug() << _last_log;
 #endif
@@ -136,6 +136,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
         emit signalWarnBox(_last_log);
 
         emit signalSetActivityWidget(true);
+        emit signalTestSegmentationPerformanceFinished(false);
         return;
     }
 
@@ -149,6 +150,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
         emit signalErrorBox(_last_log);
 
         emit signalSetActivityWidget(true);
+        emit signalTestSegmentationPerformanceFinished(false);
         return;
     }
     emit signalWriteSuccLog(_last_log);
@@ -173,6 +175,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
         emit signalErrorBox(_last_log);
 
         emit signalSetActivityWidget(true);
+        emit signalTestSegmentationPerformanceFinished(false);
         return;
     }
 
@@ -196,6 +199,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
             emit signalErrorBox(_last_log);
 
             emit signalSetActivityWidget(true);
+            emit signalTestSegmentationPerformanceFinished(false);
             return;
         }
         emit signalWriteSuccLog(_last_log);
@@ -256,6 +260,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
 #endif
 
         out << buf_hash;           // 记录哈希到文件
+        qDebug() << buf_hash.toHex();   ///TODO
         ptr_loc += cur_block_size; // 移动指针位置
 
         /* 刷新 ui */
@@ -272,11 +277,13 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     delete fin;
 
     _last_log = QString("Thread %1: Finish test writing performance, use time %2 sec").arg(getCurrentThreadID(), QString::number((double)(elapsed_time.elapsed() / 1000.0)));
-
     emit signalWriteSuccLog(_last_log);
 
     /* 解锁按钮 */
     emit signalSetActivityWidget(true);
+
+    /* 发送结束信号 */
+    emit signalTestSegmentationPerformanceFinished(true);
 }
 
 
@@ -297,6 +304,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
         emit signalWarnBox(_last_log);
 
         emit signalSetActivityWidget(true);
+        emit signalTestRecoverPerformanceFinished(false);
         return;
     }
 
@@ -310,6 +318,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
         emit signalErrorBox(_last_log);
 
         emit signalSetActivityWidget(true);
+        emit signalTestRecoverPerformanceFinished(false);
         return;
     }
     emit signalWriteSuccLog(_last_log);
@@ -334,6 +343,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
         emit signalErrorBox(_last_log);
 
         emit signalSetActivityWidget(true);
+        emit signalTestRecoverPerformanceFinished(false);
         return;
     }
 
@@ -345,6 +355,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
         emit signalWriteErrorLog(_last_log);
 
         emit signalSetActivityWidget(true);
+        emit signalTestRecoverPerformanceFinished(false);
         return;
     }
     _last_log = QString("Thread %1: %2").arg(getCurrentThreadID(), _dbs->lastLog());
@@ -360,21 +371,27 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     elapsed_time.start();
 
     /* 其他用于恢复原信息需要用到的对象 */
-    emit signalWriteInfoLog(QString("Thread %1: Start test recover profmance<br>"
-                                    "from Hash-Block-File %2<br>"
-                                    "to Recover-File %3<br>"
-                                    "with:<br>"
-                                    "Hash alg: %4<br>"
-                                    "Block size: %5<br>"
-                                    "DB-Table: %6").arg(getCurrentThreadID(), block_file_path, recover_file_path, Hash::getHashName(alg), QString::number(block_size), tb));
     InputFile* sourceFile = nullptr;            // 用于读取源文件
     BlockInfo cur_block_info;
     const size_t hash_size = Hash::getHashSize(alg);  // 获取哈希块文件中，每个哈希的长度（这个长度是固定的）
     QByteArray buf_hash;                        // 用于读取块文件中存储的哈希值，读取的长度为 hash_size
     size_t total_cant_revcover = 0;             // 无法恢复块的数量（数据库中没记录这个块）
     const QByteArray blank_block(hash_size, '\0'); // 如果没找到这个哈希值的源数据块，用这个全是 0 的数据填充 '\0' 是 ASCII 表中的空字符，对应二进制 0
+
+    emit signalWriteInfoLog(QString("Thread %1: Start test recover profmance<br>"
+                                    "from Hash-Block-File: %2, Size: %3<br>"
+                                    "to Recover-File: %4<br>"
+                                    "with:<br>"
+                                    "Hash alg: %5, Hash-Length: %6<br>"
+                                    "Every recover block size: %7<br>"
+                                    "DB-Table: %8").arg(getCurrentThreadID(), fin->filePath(), QString::number(fin->fileSize()), recoverFileInfo.filePath(), Hash::getHashName(alg), QString::number(hash_size), QString::number(block_size), tb));
+
     while (!fin->atEnd())
     {
+        /* 更新 ui */
+        emit signalSetProgressBarValue(fin->curPtrPostion());
+        qDebug() << "fin->curPtrPostion(): " << fin->curPtrPostion();
+
         buf_hash = fin->read(hash_size);
         cur_block_info = _dbs->getBlockInfo(tb, buf_hash);
 
@@ -385,25 +402,32 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
             ++total_cant_revcover;
             out << blank_block;
 
-            emit signalWriteWarningLog(_last_log);
+            // emit signalWriteWarningLog(_last_log);
+            qDebug() << _last_log;
             continue;
         }
 
         /* 如果数据库中记录了当前块
          * 更新要读取源数据的源文件
          *  （这里可以优化，比如将数据表中的数据按照文件路径排序） */
-        if (sourceFile == nullptr || sourceFile->filePath() != cur_block_info.filePath)
+        if (nullptr == sourceFile || sourceFile->filePath() != cur_block_info.filePath)
         {
             delete sourceFile;
             sourceFile = new InputFile(nullptr, cur_block_info.filePath);
+            _last_log = QString("Thread %1: Open other source file").arg(getCurrentThreadID());
+            qDebug() << _last_log;
         }
         out << fin->readFrom(cur_block_info.location, cur_block_info.size);
     }
+    recoverFile.close();
+    delete fin;
+
     _last_log = QString("Thread %1: Successful recovery file to %2, number of unrecoverable blocks %3, use time: %4 sec").arg(getCurrentThreadID(), recover_file_path, QString::number(total_cant_revcover), QString::number((double)(elapsed_time.elapsed() / 1000.0)));
     emit signalWriteSuccLog(_last_log);
 
-    recoverFile.close();
-    delete fin;
+    /* 解锁按钮 */
+    emit signalSetActivityWidget(true);
+    emit signalTestRecoverPerformanceFinished(true);
 }
 
 QString AsyncComputeModule::getCurrentThreadID() const

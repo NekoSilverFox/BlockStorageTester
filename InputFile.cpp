@@ -78,6 +78,15 @@ QByteArray InputFile::readFrom(const qint64 location, const qint64 maxlen)
     return _file.read(maxlen);
 }
 
+/**
+ * @brief InputFile::curPtrPostion 当前输入流指针位于文件的位置
+ * @return 指针位置
+ */
+qint64 InputFile::curPtrPostion()
+{
+    return _file.pos();
+}
+
 bool InputFile::atEnd()
 {
     return _file.atEnd();

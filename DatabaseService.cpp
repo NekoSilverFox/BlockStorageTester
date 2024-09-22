@@ -487,7 +487,7 @@ BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray 
         }
         else
         {
-            _last_log = QString("No matching block found in table %1 with given hash").arg(tbName);
+            _last_log = QString("No matching hash found in table %1 with given hash %2").arg(tbName, blockHash.toHex());
         }
     }
     else

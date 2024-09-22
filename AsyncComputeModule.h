@@ -21,7 +21,7 @@ public:
                          const QString& user, const QString& pwd, const QString& database);
     void disconnectCurrentDatabase();
     void dropCurrentDatabase();
-    void finishJob(const bool drop_db);
+    void finishAllJob(const bool drop_db);  // 同时也是最后的数据库断开连接和删除操作，发出最终的退出信号
 
     /* 计算任务 */
     void runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
@@ -52,8 +52,8 @@ signals:
     void signalErrorBox(const QString& msg);
 
     /* 数据库信号 */
-    void signalFinished();
-    void signalFinishJob(const bool drop_db);  // 任务完成信号，用于通知线程退出
+    void signalAllJobFinished();
+    void signalFinishAllJob(const bool drop_db);  // 任务完成信号，用于通知线程退出
     void signalConnDb(const QString& host, const int port, const QString& driver,
                       const QString& user, const QString& pwd, const QString& database);  // 连接数据库
     void signalDisconnDb();
@@ -63,7 +63,10 @@ signals:
     /* 计算任务信号 */
     void signalRunTestSegmentationPerformance(const QString& source_file_path, const QString& block_file_path,
                                               const HashAlg alg, const size_t block_size);
+    bool signalTestSegmentationPerformanceFinished(const bool is_succ);  // ↑ 任务完成信号
+
     void signalRunTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
+    bool signalTestRecoverPerformanceFinished(const bool is_succ);        // ↑ 任务完成信号
 
 private:
     QString getCurrentThreadID() const;

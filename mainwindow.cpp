@@ -76,6 +76,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalDropCurDb, _asyncJob, &AsyncComputeModule::dropCurrentDatabase);
 
     connect(_asyncJob, &AsyncComputeModule::signalRunTestSegmentationPerformance, _asyncJob, &AsyncComputeModule::runTestSegmentationProfmance);
+    connect(_asyncJob, &AsyncComputeModule::signalTestSegmentationPerformanceFinished,
+            this, [=](const bool is_succ){ if (is_succ) startTestRecoverPerformance(); }); // 分块成功结束后可以开始自动测试恢复性能
+    connect(_asyncJob, &AsyncComputeModule::signalRunTestRecoverProfmance, _asyncJob, &AsyncComputeModule::runTestRecoverProfmance);
+    connect(_asyncJob, &AsyncComputeModule::signalFinishAllJob, _asyncJob, &AsyncComputeModule::finishAllJob);
+
 
     connect(_asyncJob, &AsyncComputeModule::signalWriteInfoLog, this, &MainWindow::writeInfoLog);
     connect(_asyncJob, &AsyncComputeModule::signalWriteWarningLog, this, &MainWindow::writeWarningLog);
@@ -95,8 +100,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalHashBlocks, this, [=](const int number){ui->lcdTotalHashBlocks->display(number);});
     connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalRepeatBlocks, this, [=](const QString& str){ui->lcdTotalRepeatBlocks->display(str);});
     connect(_asyncJob, &AsyncComputeModule::signalSetLcdUseTime, this, [=](const double number){ui->lcdUseTime->display(QString::number(number, 'f', 2));});
-
-    connect(_asyncJob, &AsyncComputeModule::signalFinishJob, _asyncJob, &AsyncComputeModule::finishJob);
 
     loadSettings();
 }
@@ -464,13 +467,13 @@ void MainWindow::showErrorBox(const QString& msg)
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     QEventLoop loop;    // 使用事件循环等待任务完成
-    connect(_asyncJob, &AsyncComputeModule::signalFinished, &loop, &QEventLoop::quit);
+    connect(_asyncJob, &AsyncComputeModule::signalAllJobFinished, &loop, &QEventLoop::quit);
 
     /* 结束线程并且自动删除使用的数据库 */
     if (is_db_conn)
     {
-        emit _asyncJob->signalFinishJob(ui->cbAutoDropDB->isChecked());
-        loop.exec();        // 阻塞，直到 signalFinished 被发出
+        emit _asyncJob->signalFinishAllJob(ui->cbAutoDropDB->isChecked());
+        loop.exec();        // 阻塞，直到 AsyncComputeModule::signalAllJobFinished 被发出
     }
     _threadAsyncJob->quit();
     _threadAsyncJob->wait();

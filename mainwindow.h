@@ -51,6 +51,7 @@ private slots:
     void aboutThisProject();
     void selectSourceFile();
     void selectBlockFile();
+    void selectRecoverFile();
 
     void closeEvent(QCloseEvent* event) override;
 

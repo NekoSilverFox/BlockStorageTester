@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
     connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
+    connect(ui->btnSelectRecoverFile, &QPushButton::clicked, this, &MainWindow::selectRecoverFile);
 
     connect(ui->btnRunTest, &QPushButton::clicked, this, &MainWindow::testBlockWritePerformanceModule);
 
@@ -119,6 +120,7 @@ void MainWindow::saveSettings()
 
     settings.setValue("leSourceFile", ui->leSourceFile->text());
     settings.setValue("leBlockFile", ui->leBlockFile->text());
+    settings.setValue("leRecoverFile", ui->leRecoverFile->text());
 
     settings.setValue("cbBlockSize", ui->cbBlockSize->currentIndex());
     settings.setValue("cbHashAlg", ui->cbHashAlg->currentIndex());
@@ -140,6 +142,7 @@ void MainWindow::loadSettings()
 
     ui->leSourceFile->setText(settings.value("leSourceFile", "").toString());
     ui->leBlockFile->setText(settings.value("leBlockFile", "").toString());
+    ui->leRecoverFile->setText(settings.value("leRecoverFile", "").toString());
 
     ui->cbBlockSize->setCurrentIndex(settings.value("cbBlockSize", 0).toInt());
     ui->cbHashAlg->setCurrentIndex(settings.value("cbHashAlg", 0).toInt());
@@ -199,6 +202,8 @@ void MainWindow::setActivityWidget(const bool activity)
     ui->leHost->setReadOnly(!activity);
     ui->lePort->setReadOnly(!activity);
     ui->leDatabase->setReadOnly(!activity);
+
+    ui->cbAutoDropDB->setEnabled(activity);
 
     ui->btnConnectDB->setEnabled(activity);
     ui->btnDisconnect->setEnabled(activity);
@@ -356,20 +361,24 @@ void MainWindow::testBlockWritePerformanceModule()
 
 void MainWindow::selectSourceFile()
 {
-    QString path = QFileDialog::getOpenFileName(this, "Select file", QDir::homePath());
-    if (path.isEmpty())
+    QString sourceFilePath = QFileDialog::getOpenFileName(this, "Select file", QDir::homePath());
+    if (sourceFilePath.isEmpty())
     {
         QMessageBox::warning(this, "Warning", "Do not selected any file!");
         return;
     }
-    ui->leSourceFile->setText(path);
+    ui->leSourceFile->setText(sourceFilePath);
 
     /* 自动添加 block 文件路径 */
-    QFileInfo fileInfo(path);  // 使用 QFileInfo 解析路径
+    QFileInfo sourceInfo(sourceFilePath);  // 使用 QFileInfo 解析路径
      // QString fileName = fileInfo.fileName(); // 获取源文件文件名
      // QString filePath = fileInfo.path();     // 获取去除文件名后的路径
-    QString blockFilePath = fileInfo.filePath().append(".hbk");  // 重新构造文件名 hbk - Hash Block
+    QString blockFilePath = sourceInfo.filePath().append(".hbk");  // 重新构造文件名 hbk - Hash Block
     ui->leBlockFile->setText(blockFilePath);
+
+    /* 自动添加 recover 文件路径 */
+    QString recoverFilePath = sourceInfo.dir().filePath(QString("RECOVER_").append(sourceInfo.fileName()));
+    ui->leRecoverFile->setText(recoverFilePath);
 
     return;
 }
@@ -383,6 +392,19 @@ void MainWindow::selectBlockFile()
         return;
     }
     ui->leBlockFile->setText(path);
+
+    return;
+}
+
+void MainWindow::selectRecoverFile()
+{
+    QString path = QFileDialog::getSaveFileName(this, "Save path of recover file", QDir::homePath());
+    if (path.isEmpty())
+    {
+        QMessageBox::warning(this, "Warning", "Do not selected any file!");
+        return;
+    }
+    ui->leRecoverFile->setText(path);
 
     return;
 }

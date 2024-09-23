@@ -25,10 +25,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     is_db_conn = false;
 
-    ui->tb->setMarkdown("# Hello, World!\n\nThis is **bold** and *italic* text.");
-    ui->tb->append("# 123Hello, World!\n\nThis is **bold** and *italic* text.");
-
-
     setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);
@@ -47,6 +43,26 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lcdTotalRecovered->display(0);
     ui->lcdRecoveredPercent->display(QString::number(0.0, 'f', 2));
     ui->lcdRecoverTime->display(QString::number(0.0, 'f', 2));
+
+    /* 运算结果 */
+    QStringList res_list_header;
+    res_list_header << "File" << "Hash alg" << "Block size"  << "Total blocks"
+                    << "Hash records" << "Repeat records" << "Repeat rate" << "Seg time(s)"
+                    << "Recovered blocks" << "Recovered rate" << "Recover time(s)";
+    ui->tbwResult->setColumnCount(res_list_header.size());
+    ui->tbwResult->setHorizontalHeaderLabels(res_list_header);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(7, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(8, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(9, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(10, QHeaderView::ResizeToContents);
+
 
     QLabel* lbRuningJobInfo = new QLabel(this);
     lbRuningJobInfo->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);  // 左对齐并垂直居中
@@ -112,7 +128,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalSetLbSegmentationStyle, this, [=](QString style){ui->lbSegmentation->setStyleSheet(style);});
     connect(_asyncJob, &AsyncComputeModule::signalSetLbRecoverStyle, this, [=](QString style){ui->lbRecover->setStyleSheet(style);});
 
-
     connect(_asyncJob, &AsyncComputeModule::signalSetActivityWidget, this, &MainWindow::setActivityWidget);
     connect(_asyncJob, &AsyncComputeModule::signalSetLbRuningJobInfo, this, [=](const QString& info){lbRuningJobInfo->setText(info);});
     connect(_asyncJob, &AsyncComputeModule::signalSetProgressBarValue, this, [=](const int number){progressBar->setValue(number);});
@@ -128,6 +143,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalSetLcdRecoveredPercent, this, [=](const double number){ui->lcdRecoveredPercent->display(QString::number(number, 'f', 2));});
     connect(_asyncJob, &AsyncComputeModule::signalSetLcdRecoverTime, this, [=](const double number){ui->lcdRecoverTime->display(QString::number(number, 'f', 2));});
 
+    connect(_asyncJob, &AsyncComputeModule::signalCurSegmentationResult, this, &MainWindow::addSegmentationResult);
+    connect(_asyncJob, &AsyncComputeModule::signalCurRecoverResult, this, &MainWindow::addRecoverResult);
 
     loadSettings();
 }
@@ -415,6 +432,47 @@ void MainWindow::startTestRecoverPerformance()
 
     /* 发送信号，让子线程去执行计算任务 */
     emit _asyncJob->signalRunTestRecoverProfmance(ui->leRecoverFile->text(), ui->leBlockFile->text(), alg, block_size);
+}
+
+/**
+ * @brief MainWindow::addSegmentationResult 将分块测试结果写入到表格中
+ * @param seg_result 分块测试结果
+ */
+void MainWindow::addSegmentationResult(const QList<QString> &seg_result)
+{
+    /* 增加 新行 */
+    const size_t i_row = ui->tbwResult->rowCount();
+    ui->tbwResult->insertRow(i_row);
+
+    /* 遍历 seg_result，填充新行的每一列数据 */
+    for (int col = 0; col < seg_result.size(); ++col)
+    {
+        ui->tbwResult->setItem(i_row, col, new QTableWidgetItem(seg_result.at(col)));
+    }
+    /* 设置焦点到新增行的第一列，并选中整行 */
+    ui->tbwResult->setCurrentCell(i_row, 0);
+    ui->tbwResult->selectRow(i_row); // 选中整行
+}
+
+/**
+ * @brief MainWindow::addRecoverResult 将恢复结果写入到表格中
+ * @param recover_result 恢复结果
+ */
+void MainWindow::addRecoverResult(const QList<QString>& recover_result)
+{
+    /* 定位到最后一行 */
+    const size_t i_row = ui->tbwResult->rowCount() - 1;
+
+    /* 遍历 seg_result，从中间部分开始填充之前没补充的每一列数据 */
+    for (int i = 0, col = ui->tbwResult->columnCount() - recover_result.size();
+         i < recover_result.size(); ++col, ++i)
+    {
+        ui->tbwResult->setItem(i_row, col, new QTableWidgetItem(recover_result.at(i)));
+    }
+
+    /* 设置焦点到新增行的第一列，并选中整行 */
+    ui->tbwResult->setCurrentCell(i_row, 0);
+    ui->tbwResult->selectRow(i_row); // 选中整行
 }
 
 

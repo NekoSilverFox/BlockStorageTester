@@ -25,6 +25,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     is_db_conn = false;
 
+    ui->tb->setMarkdown("# Hello, World!\n\nThis is **bold** and *italic* text.");
+    ui->tb->append("# 123Hello, World!\n\nThis is **bold** and *italic* text.");
+
+
     setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);

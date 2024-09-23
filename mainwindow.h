@@ -24,8 +24,13 @@ public:
     void writeErrorLog(const QString& msg);
     void writeSuccLog(const QString& msg);
 
+    /* 准备数据并且发送信号执行测试 */
     void startTestSegmentationPerformance();  // 测试分块分割（segmentation）写入性能
     void startTestRecoverPerformance();  // 测试分块恢复性能
+
+    /* 结果展示 */
+    void addSegmentationResult(const QList<QString>& seg_result);
+    void addRecoverResult(const QList<QString>& recover_result);
 
     /* 数据库链接指示灯 */
     void setLbDBConnectedStyle(QString style);

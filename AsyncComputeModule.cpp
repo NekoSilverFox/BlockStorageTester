@@ -215,6 +215,7 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     emit signalSetProgressBarRange(0, fin->fileSize());
     emit signalSetProgressBarValue(0);
     emit signalSetLbSegmentationStyle(ThemeStyle::LABLE_ORANGE);
+    emit signalSetLbRecoverStyle(ThemeStyle::LABLE_RED);
 
     /**
      * 开始读取 -> 计算哈希 -> 写入
@@ -281,6 +282,13 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     }
     blockFile.close();
     delete fin;
+
+    const double repeat_percent = (double)total_repeat_times/file_blocks*100;
+    QList<QString> seg_result;
+    seg_result << source_file_path << Hash::getHashName(alg) << QString::number(block_size) << QString::number(file_blocks)
+               << QString::number(total_hash_records) << QString::number(total_repeat_times) << QString::number(repeat_percent, 'f', 2).append("%")
+               << QString::number((double)(elapsed_time.elapsed() / 1000.0), 'f', 2);
+    emit signalCurSegmentationResult(seg_result);
 
     _last_log = QString("[Thread %1] Finish test writing performance, use time %2 sec").arg(getCurrentThreadID(), QString::number((double)(elapsed_time.elapsed() / 1000.0)));
     emit signalWriteSuccLog(_last_log);
@@ -468,6 +476,11 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     recoverFile.close();
     delete curSourceFile;
     delete fin;
+
+    QList<QString> recover_result;
+    recover_result << QString::number(total_revcovered) << QString::number(recovery_rate, 'f', 2).append("%")
+                   << QString::number(use_time, 'f', 2);
+    emit signalCurRecoverResult(recover_result);
 
     _last_log = QString("[Thread %1] Successful recovery file to %2<br>"
                         "Number of unrecoverable blocks %3/%4, Recovery rate %5\%,"

@@ -1076,6 +1076,16 @@
       </property>
      </widget>
     </item>
+    <item>
+     <widget class="QTableWidget" name="tbwResult">
+      <property name="textElideMode">
+       <enum>Qt::TextElideMode::ElideMiddle</enum>
+      </property>
+      <attribute name="horizontalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">

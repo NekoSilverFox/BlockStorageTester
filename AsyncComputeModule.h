@@ -82,6 +82,10 @@ signals:
     void signalRunTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
     bool signalTestRecoverPerformanceFinished(const bool is_succ);        // ↑ 任务完成信号
 
+    /* 发送计算结果 */
+    void signalCurSegmentationResult(const QList<QString>& seg_result);
+    void signalCurRecoverResult(const QList<QString>& recover_result);
+
 private:
     QString getCurrentThreadID() const;
     QString getTableName(const size_t block_size, const HashAlg alg);

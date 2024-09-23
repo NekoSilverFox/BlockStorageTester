@@ -43,8 +43,6 @@ private:
     /* 数据库 & 数据表相关操作 */
     void asyncJobDbConnStateChanged(const bool is_conn);
 
-signals:
-
 private slots:
     void setActivityWidget(const bool activity);
 

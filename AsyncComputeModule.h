@@ -31,14 +31,28 @@ public:
 signals:
     /* 设置UI */
     void signalSetLbDBConnectedStyle(QString style);
+    void signalSetLbSegmentationStyle(QString style);
+    void signalSetLbRecoverStyle(QString style);
+
     void signalSetActivityWidget(const bool activity);
+
     void signalSetLbRuningJobInfo(const QString& info);
+
     void signalSetProgressBarValue(const int number);
     void signalSetProgressBarRange(const int minimum, const int maximum);
+
     void signalSetLcdTotalFileBlocks(const int number);
-    void signalSetLcdTotalHashBlocks(const int number);
-    void signalSetLcdTotalRepeatBlocks(const QString& str);
-    void signalSetLcdUseTime(const double number);
+    void signalSetLcdTotalDbHashRecords(const int number);
+    void signalSetLcdTotalRepeat(const int number);
+    void signalSetLcdRepeatPercent(const double number);  // 注意：这个是 Repeat（重复）
+    void signalSetLcdSegmentationTime(const double number);
+
+    void signalSetLcdNumNeedRecover(const int number);
+    void signalSetLcdTotalUnrecovered(const int number);
+    void signalSetLcdTotalRecovered(const int number);
+    void signalSetLcdRecoveredPercent(const double number);  // 注意：这个是 Recovered（恢复）
+    void signalSetLcdRecoverTime(const double number);
+
 
     /* 日志信号 */
     void signalWriteInfoLog(const QString& msg);

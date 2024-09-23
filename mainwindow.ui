@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>913</width>
-    <height>728</height>
+    <width>931</width>
+    <height>894</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>900</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -17,13 +23,24 @@
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QGroupBox" name="groupBox">
+      <property name="font">
+       <font>
+        <pointsize>13</pointsize>
+       </font>
+      </property>
       <property name="title">
-       <string>DataBase</string>
+       <string>⓵ DataBase</string>
       </property>
       <layout class="QGridLayout" name="gridLayout">
        <item row="1" column="2">
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QGridLayout" name="gridLayout_3">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item row="1" column="1">
            <widget class="QLineEdit" name="leHost"/>
           </item>
@@ -206,10 +223,24 @@
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
       <property name="title">
-       <string>Block</string>
+       <string>⓶ Input Segmentation and Recover infomation</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
+       <property name="bottomMargin">
+        <number>12</number>
+       </property>
        <item row="0" column="0">
         <widget class="QWidget" name="widget_6" native="true">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -360,7 +391,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>60</width>
+              <width>80</width>
               <height>20</height>
              </size>
             </property>
@@ -407,7 +438,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>120</width>
+              <width>80</width>
               <height>20</height>
              </size>
             </property>
@@ -415,8 +446,108 @@
           </item>
           <item>
            <widget class="QPushButton" name="btnRunTest">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
             <property name="text">
-             <string>Run Test</string>
+             <string>Run Single Test</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+            <property name="default">
+             <bool>true</bool>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lbSegmentation">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <italic>true</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="locale">
+             <locale language="English" country="UnitedStates"/>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Shape::WinPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Plain</enum>
+            </property>
+            <property name="lineWidth">
+             <number>1</number>
+            </property>
+            <property name="text">
+             <string>● Segmentation</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lbRecover">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <italic>true</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="locale">
+             <locale language="English" country="UnitedStates"/>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Shape::WinPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Plain</enum>
+            </property>
+            <property name="lineWidth">
+             <number>1</number>
+            </property>
+            <property name="text">
+             <string>● Recover</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -427,38 +558,24 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_3">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>120</height>
-       </size>
+     <widget class="QGroupBox" name="groupBox_4">
+      <property name="font">
+       <font>
+        <pointsize>13</pointsize>
+       </font>
       </property>
       <property name="title">
-       <string>Output infomation</string>
+       <string>⓷ Segmentation ouput infomation</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="0" column="3">
-        <widget class="QLabel" name="label_19">
+       <item row="1" column="4">
+        <widget class="QLabel" name="label_21">
          <property name="text">
-          <string>Total Hash-blocks</string>
+          <string>Use time (s)</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="4">
-        <widget class="QLCDNumber" name="lcdTotalHashBlocks">
-         <property name="minimumSize">
-          <size>
-           <width>250</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="digitCount">
-          <number>16</number>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
+       <item row="0" column="3">
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
@@ -468,74 +585,38 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>50</width>
+           <width>40</width>
            <height>20</height>
           </size>
          </property>
         </spacer>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_18">
-         <property name="text">
-          <string>Total File-blocks</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLCDNumber" name="lcdTotalFileBlocks">
+       <item row="1" column="5">
+        <widget class="QLCDNumber" name="lcdSegmentationTime">
          <property name="minimumSize">
           <size>
-           <width>250</width>
-           <height>0</height>
+           <width>200</width>
+           <height>40</height>
           </size>
-         </property>
-         <property name="font">
-          <font>
-           <bold>false</bold>
-           <kerning>true</kerning>
-          </font>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LayoutDirection::LeftToRight</enum>
-         </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Shape::Box</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Raised</enum>
          </property>
          <property name="smallDecimalPoint">
           <bool>false</bool>
          </property>
          <property name="digitCount">
-          <number>16</number>
+          <number>12</number>
          </property>
          <property name="segmentStyle">
-          <enum>QLCDNumber::SegmentStyle::Filled</enum>
+          <enum>QLCDNumber::SegmentStyle::Flat</enum>
+         </property>
+         <property name="value" stdset="0">
+          <double>123456789.000000000000000</double>
          </property>
          <property name="intValue" stdset="0">
-          <number>0</number>
+          <number>123456789</number>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_20">
-         <property name="text">
-          <string>Total Repeat-blocks</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLCDNumber" name="lcdTotalRepeatBlocks">
-         <property name="digitCount">
-          <number>16</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
+       <item row="1" column="3">
         <spacer name="horizontalSpacer_3">
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
@@ -545,23 +626,427 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>50</width>
+           <width>40</width>
            <height>20</height>
           </size>
          </property>
         </spacer>
        </item>
-       <item row="1" column="3">
-        <widget class="QLabel" name="label_21">
+       <item row="1" column="1">
+        <widget class="QWidget" name="widget_8" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>150</width>
+           <height>0</height>
+          </size>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLCDNumber" name="lcdTotalRepeat">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="digitCount">
+             <number>10</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::SegmentStyle::Flat</enum>
+            </property>
+            <property name="intValue" stdset="0">
+             <number>123456789</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLCDNumber" name="lcdRepeatPercent">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="digitCount">
+             <number>6</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::SegmentStyle::Flat</enum>
+            </property>
+            <property name="value" stdset="0">
+             <double>123.560000000000002</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QWidget" name="widget_7" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLCDNumber" name="lcdTotalFileBlocks">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+              <bold>false</bold>
+              <kerning>true</kerning>
+             </font>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LayoutDirection::LeftToRight</enum>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Raised</enum>
+            </property>
+            <property name="smallDecimalPoint">
+             <bool>false</bool>
+            </property>
+            <property name="digitCount">
+             <number>16</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::SegmentStyle::Flat</enum>
+            </property>
+            <property name="intValue" stdset="0">
+             <number>123456789</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>Total DB-Hash-records</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="5">
+        <widget class="QLCDNumber" name="lcdTotalDbHashRecords">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Raised</enum>
+         </property>
+         <property name="digitCount">
+          <number>12</number>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::SegmentStyle::Flat</enum>
+         </property>
+         <property name="intValue" stdset="0">
+          <number>123456789</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_18">
+         <property name="text">
+          <string>Total File-blocks</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="text">
+          <string>Total Repeated-records</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_24">
+         <property name="minimumSize">
+          <size>
+           <width>25</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>28</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>%</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="font">
+       <font>
+        <pointsize>13</pointsize>
+       </font>
+      </property>
+      <property name="title">
+       <string>⓸ Recover ouput infomation</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="0" column="5">
+        <widget class="QLCDNumber" name="lcdTotalUnrecovered">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Raised</enum>
+         </property>
+         <property name="digitCount">
+          <number>12</number>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::SegmentStyle::Flat</enum>
+         </property>
+         <property name="intValue" stdset="0">
+          <number>123456789</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_25">
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Plain</enum>
+         </property>
+         <property name="text">
+          <string>Total Hash-records in file</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <spacer name="horizontalSpacer_7">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Policy::Maximum</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_27">
+         <property name="minimumSize">
+          <size>
+           <width>25</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>28</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>%</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QWidget" name="widget_9" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>150</width>
+           <height>0</height>
+          </size>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLCDNumber" name="lcdTotalRecovered">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="digitCount">
+             <number>10</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::SegmentStyle::Flat</enum>
+            </property>
+            <property name="intValue" stdset="0">
+             <number>123456789</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLCDNumber" name="lcdRecoveredPercent">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="digitCount">
+             <number>6</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::SegmentStyle::Flat</enum>
+            </property>
+            <property name="value" stdset="0">
+             <double>123.560000000000002</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLCDNumber" name="lcdNumNeedRecover">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Raised</enum>
+         </property>
+         <property name="digitCount">
+          <number>16</number>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::SegmentStyle::Flat</enum>
+         </property>
+         <property name="intValue" stdset="0">
+          <number>123456789</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_26">
+         <property name="text">
+          <string>Total Recovered-blocks</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QLabel" name="label_28">
+         <property name="text">
+          <string>Total Unrecovered-blocks</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4">
+        <widget class="QLabel" name="label_29">
          <property name="text">
           <string>Use time (s)</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="4">
-        <widget class="QLCDNumber" name="lcdUseTime">
+       <item row="1" column="5">
+        <widget class="QLCDNumber" name="lcdRecoverTime">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>false</bool>
+         </property>
          <property name="digitCount">
-          <number>16</number>
+          <number>12</number>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::SegmentStyle::Flat</enum>
+         </property>
+         <property name="value" stdset="0">
+          <double>123456789.000000000000000</double>
+         </property>
+         <property name="intValue" stdset="0">
+          <number>123456789</number>
          </property>
         </widget>
        </item>
@@ -591,7 +1076,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>913</width>
+     <width>931</width>
      <height>24</height>
     </rect>
    </property>

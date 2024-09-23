@@ -23,13 +23,26 @@ MainWindow::MainWindow(QWidget *parent)
     writeInfoLog("Start init");
     writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
 
+    is_db_conn = false;
+
     setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
     ui->lbPicSQLServer->setScaledContents(true);
 
     ui->lbDBConnected->setStyleSheet(ThemeStyle::LABLE_RED);
+    ui->lbSegmentation->setStyleSheet(ThemeStyle::LABLE_RED);
+    ui->lbRecover->setStyleSheet(ThemeStyle::LABLE_RED);
 
-    is_db_conn = false;
+    ui->lcdTotalFileBlocks->display(0);
+    ui->lcdTotalDbHashRecords->display(0);
+    ui->lcdTotalRepeat->display(0);
+    ui->lcdRepeatPercent->display(QString::number(0.0, 'f', 2));
+    ui->lcdSegmentationTime->display(QString::number(0.0, 'f', 2));
+    ui->lcdNumNeedRecover->display(0);
+    ui->lcdTotalUnrecovered->display(0);
+    ui->lcdTotalRecovered->display(0);
+    ui->lcdRecoveredPercent->display(QString::number(0.0, 'f', 2));
+    ui->lcdRecoverTime->display(QString::number(0.0, 'f', 2));
 
     QLabel* lbRuningJobInfo = new QLabel(this);
     lbRuningJobInfo->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);  // 左对齐并垂直居中
@@ -92,14 +105,25 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalErrorBox, this, &MainWindow::showErrorBox);
 
     connect(_asyncJob, &AsyncComputeModule::signalSetLbDBConnectedStyle, this, &MainWindow::setLbDBConnectedStyle);
+    connect(_asyncJob, &AsyncComputeModule::signalSetLbSegmentationStyle, this, [=](QString style){ui->lbSegmentation->setStyleSheet(style);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLbRecoverStyle, this, [=](QString style){ui->lbRecover->setStyleSheet(style);});
+
+
     connect(_asyncJob, &AsyncComputeModule::signalSetActivityWidget, this, &MainWindow::setActivityWidget);
     connect(_asyncJob, &AsyncComputeModule::signalSetLbRuningJobInfo, this, [=](const QString& info){lbRuningJobInfo->setText(info);});
     connect(_asyncJob, &AsyncComputeModule::signalSetProgressBarValue, this, [=](const int number){progressBar->setValue(number);});
     connect(_asyncJob, &AsyncComputeModule::signalSetProgressBarRange, this, [=](const int minimum, const int maximum){progressBar->setRange(minimum, maximum);});
     connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalFileBlocks, this, [=](const int number){ui->lcdTotalFileBlocks->display(number);});
-    connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalHashBlocks, this, [=](const int number){ui->lcdTotalHashBlocks->display(number);});
-    connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalRepeatBlocks, this, [=](const QString& str){ui->lcdTotalRepeatBlocks->display(str);});
-    connect(_asyncJob, &AsyncComputeModule::signalSetLcdUseTime, this, [=](const double number){ui->lcdUseTime->display(QString::number(number, 'f', 2));});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalDbHashRecords, this, [=](const int number){ui->lcdTotalDbHashRecords->display(number);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalRepeat, this, [=](const int number){ui->lcdTotalRepeat->display(number);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdRepeatPercent, this, [=](const double number){ui->lcdRepeatPercent->display(QString::number(number, 'f', 2));});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdSegmentationTime, this, [=](const double number){ui->lcdSegmentationTime->display(QString::number(number, 'f', 2));});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdNumNeedRecover, this, [=](const int number){ui->lcdNumNeedRecover->display(number);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalUnrecovered, this, [=](const int number){ui->lcdTotalUnrecovered->display(number);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdTotalRecovered, this, [=](const int number){ui->lcdTotalRecovered->display(number);});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdRecoveredPercent, this, [=](const double number){ui->lcdRecoveredPercent->display(QString::number(number, 'f', 2));});
+    connect(_asyncJob, &AsyncComputeModule::signalSetLcdRecoverTime, this, [=](const double number){ui->lcdRecoverTime->display(QString::number(number, 'f', 2));});
+
 
     loadSettings();
 }

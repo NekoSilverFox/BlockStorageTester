@@ -232,7 +232,7 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
      * counter              块的重复次数（计数器）
      */
     QString sql = QString("CREATE TABLE %1 ("
-                          "block_hash BYTEA NOT NULL,"
+                          "block_hash BYTEA NOT NULL UNIQUE,"  // 增加 唯一键 UNIQUE 会优化速度
                           "source_file_path TEXT NOT NULL,"
                           "block_loc NUMERIC(1000, 0) NOT NULL,"
                           "block_size INTEGER NOT NULL,"

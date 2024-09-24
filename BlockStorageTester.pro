@@ -33,6 +33,7 @@ HEADERS += \
     DatabaseService.h \
     HashAlgorithm.h \
     InputFile.h \
+    ResultComput.h \
     ThemeStyle.h \
     mainwindow.h
 

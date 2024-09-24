@@ -460,7 +460,7 @@ BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray 
 {
     if (!isDatabaseOpen())
     {
-        return {"", 0, 0};
+        return BlockInfo();
     }
 
     QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
@@ -496,7 +496,7 @@ BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray 
         _last_log = QString("Failed to retrieve block info from table %1: %2").arg(tbName, q.lastError().text());
     }
 
-    return {"", 0, 0};  // 查询失败或没有找到匹配记录时返回
+    return BlockInfo();  // 查询失败或没有找到匹配记录时返回 空对象
 }
 
 

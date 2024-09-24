@@ -280,17 +280,22 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
             emit signalSetLcdSegmentationTime((double)(elapsed_time.elapsed() / 1000.0));
         }
     }
+    _cur_result_comput                = ResultComput();
+    _cur_result_comput.sourceFilePath = fin->filePath();
+    _cur_result_comput.hashAlg        = alg;
+    _cur_result_comput.blockSize      = block_size;
+    _cur_result_comput.totalBlock     = file_blocks;
+    _cur_result_comput.hashRecordDB   = total_hash_records;
+    _cur_result_comput.repeatRecord   = total_repeat_times;
+    _cur_result_comput.repeatRate     = (double)total_repeat_times/file_blocks*100;
+    _cur_result_comput.segTime        = (double)(elapsed_time.elapsed() / 1000.0);
+
     blockFile.close();
     delete fin;
 
-    const double repeat_percent = (double)total_repeat_times/file_blocks*100;
-    QList<QString> seg_result;
-    seg_result << source_file_path << Hash::getHashName(alg) << QString::number(block_size) << QString::number(file_blocks)
-               << QString::number(total_hash_records) << QString::number(total_repeat_times) << QString::number(repeat_percent, 'f', 2).append("%")
-               << QString::number((double)(elapsed_time.elapsed() / 1000.0), 'f', 2);
-    emit signalCurSegmentationResult(seg_result);
+    emit signalCurSegmentationResult(_cur_result_comput);
 
-    _last_log = QString("[Thread %1] Finish test writing performance, use time %2 sec").arg(getCurrentThreadID(), QString::number((double)(elapsed_time.elapsed() / 1000.0)));
+    _last_log = QString("[Thread %1] Finish test writing performance, use time %2 sec").arg(getCurrentThreadID(), QString::number(_cur_result_comput.segTime));
     emit signalWriteSuccLog(_last_log);
 
     /* 解锁按钮 */
@@ -392,10 +397,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     const size_t num_need_recover = fin->fileSize() / hash_size;  // .hbk 文件中记录的哈希记录条数，同样的也是需要从源文件恢复几个块
     QByteArray buf_hash;                        // 用于读取块文件中存储的哈希值，读取的长度为 hash_size
     size_t total_cant_revcover = 0;             // 无法恢复块的数量（数据库中没记录这个块）
-    size_t total_revcovered = 0;                // 成功恢复块的数量（数据库中记录了这个块，并且源文件也成功读取了）
     const QByteArray blank_block(block_size, '\0'); // 如果没找到这个哈希值的源数据块，用这个全是 0 的数据填充 '\0' 是 ASCII 表中的空字符，对应二进制 0
-    double recovery_rate = 0.0;  // 成功恢复率
-    double use_time = 0.0;  // 用时
 
     /* 更新（初始化） UI 信息 */
     emit signalWriteInfoLog(QString("[Thread %1] "
@@ -462,31 +464,31 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
 
         // out << fin->readFrom(cur_block_info.location, cur_block_info.size);
         out.writeRawData(curSourceFile->readFrom(cur_block_info.location, cur_block_info.size), cur_block_info.size);
-        ++total_revcovered;
-        recovery_rate = (double)total_revcovered / num_need_recover * 100;  // 恢复率
-        use_time = elapsed_time.elapsed() / 1000.0;
 
-        emit signalSetLcdTotalRecovered(total_revcovered);
-        emit signalSetLcdRecoveredPercent(recovery_rate);
-        emit signalSetLcdRecoverTime(use_time);
+        ++_cur_result_comput.recoveredBlock;  // 成功恢复块的数量（数据库中记录了这个块，并且源文件也成功读取了）
+        _cur_result_comput.recoveredRate = (double)_cur_result_comput.recoveredBlock / num_need_recover * 100;  // 恢复成功率
+        _cur_result_comput.recoveredTime = elapsed_time.elapsed() / 1000.0;  // 用时
+
+        emit signalSetLcdTotalRecovered(_cur_result_comput.recoveredBlock);
+        emit signalSetLcdRecoveredPercent(_cur_result_comput.recoveredRate);
+        emit signalSetLcdRecoverTime(_cur_result_comput.recoveredTime);
 #if !QT_NO_DEBUG
         qDebug() << _last_log << "\nRecover data: " << curSourceFile->readFrom(cur_block_info.location, cur_block_info.size);
 #endif
     }
+    // 结果发送到表
+
+    emit signalCurRecoverResult(_cur_result_comput);
     recoverFile.close();
     delete curSourceFile;
     delete fin;
 
-    QList<QString> recover_result;
-    recover_result << QString::number(total_revcovered) << QString::number(recovery_rate, 'f', 2).append("%")
-                   << QString::number(use_time, 'f', 2);
-    emit signalCurRecoverResult(recover_result);
-
     _last_log = QString("[Thread %1] Successful recovery file to %2<br>"
                         "Number of unrecoverable blocks %3/%4, Recovery rate %5\%,"
                         "Use time: %6 sec").arg(getCurrentThreadID(), recover_file_path,
-                                                QString::number(total_cant_revcover), QString::number(num_need_recover), QString::number(recovery_rate, 'f', 2),
-                                                QString::number(use_time));
+                                                QString::number(total_cant_revcover),
+                                                QString::number(num_need_recover), QString::number(_cur_result_comput.recoveredRate, 'f', 2),
+                                                QString::number(_cur_result_comput.recoveredTime));
     emit signalWriteSuccLog(_last_log);
 
     /* 解锁按钮 */

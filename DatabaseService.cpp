@@ -232,7 +232,7 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
      * counter              块的重复次数（计数器）
      */
     QString sql = QString("CREATE TABLE %1 ("
-                          "block_hash BYTEA NOT NULL,"
+                          "block_hash BYTEA NOT NULL UNIQUE,"  // 增加 唯一键 UNIQUE 会优化速度
                           "source_file_path TEXT NOT NULL,"
                           "block_loc NUMERIC(1000, 0) NOT NULL,"
                           "block_size INTEGER NOT NULL,"
@@ -460,7 +460,7 @@ BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray 
 {
     if (!isDatabaseOpen())
     {
-        return {"", 0, 0};
+        return BlockInfo();
     }
 
     QSqlQuery q(QSqlDatabase::database(QSqlDatabase::defaultConnection));
@@ -496,7 +496,7 @@ BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray 
         _last_log = QString("Failed to retrieve block info from table %1: %2").arg(tbName, q.lastError().text());
     }
 
-    return {"", 0, 0};  // 查询失败或没有找到匹配记录时返回
+    return BlockInfo();  // 查询失败或没有找到匹配记录时返回 空对象
 }
 
 

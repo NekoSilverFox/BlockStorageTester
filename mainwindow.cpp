@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
 
     is_db_conn = false;
+    _listResultComput = new QList<ResultComput>();
 
     setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
@@ -438,17 +439,22 @@ void MainWindow::startTestRecoverPerformance()
  * @brief MainWindow::addSegmentationResult 将分块测试结果写入到表格中
  * @param seg_result 分块测试结果
  */
-void MainWindow::addSegmentationResult(const QList<QString> &seg_result)
+void MainWindow::addSegmentationResult(const ResultComput& seg_result)
 {
     /* 增加 新行 */
     const size_t i_row = ui->tbwResult->rowCount();
     ui->tbwResult->insertRow(i_row);
 
-    /* 遍历 seg_result，填充新行的每一列数据 */
-    for (int col = 0; col < seg_result.size(); ++col)
-    {
-        ui->tbwResult->setItem(i_row, col, new QTableWidgetItem(seg_result.at(col)));
-    }
+    /* 填充新行的每一列数据 */
+    ui->tbwResult->setItem(i_row, 0, new QTableWidgetItem(seg_result.sourceFilePath));
+    ui->tbwResult->setItem(i_row, 1, new QTableWidgetItem(Hash::getHashName(seg_result.hashAlg)));
+    ui->tbwResult->setItem(i_row, 2, new QTableWidgetItem(QString::number(seg_result.blockSize)));
+    ui->tbwResult->setItem(i_row, 3, new QTableWidgetItem(QString::number(seg_result.totalBlock)));
+    ui->tbwResult->setItem(i_row, 4, new QTableWidgetItem(QString::number(seg_result.hashRecordDB)));
+    ui->tbwResult->setItem(i_row, 5, new QTableWidgetItem(QString::number(seg_result.repeatRecord)));
+    ui->tbwResult->setItem(i_row, 6, new QTableWidgetItem(QString::number(seg_result.repeatRate, 'f', 2).append('%')));
+    ui->tbwResult->setItem(i_row, 7, new QTableWidgetItem(QString::number(seg_result.segTime, 'f', 2).append('s')));
+
     /* 设置焦点到新增行的第一列，并选中整行 */
     ui->tbwResult->setCurrentCell(i_row, 0);
     ui->tbwResult->selectRow(i_row); // 选中整行
@@ -458,21 +464,58 @@ void MainWindow::addSegmentationResult(const QList<QString> &seg_result)
  * @brief MainWindow::addRecoverResult 将恢复结果写入到表格中
  * @param recover_result 恢复结果
  */
-void MainWindow::addRecoverResult(const QList<QString>& recover_result)
+void MainWindow::addRecoverResult(const ResultComput& recover_result)
 {
     /* 定位到最后一行 */
     const size_t i_row = ui->tbwResult->rowCount() - 1;
 
-    /* 遍历 seg_result，从中间部分开始填充之前没补充的每一列数据 */
-    for (int i = 0, col = ui->tbwResult->columnCount() - recover_result.size();
-         i < recover_result.size(); ++col, ++i)
-    {
-        ui->tbwResult->setItem(i_row, col, new QTableWidgetItem(recover_result.at(i)));
-    }
+    /* 从中间部分开始填充之前没补充的每一列数据 */
+    ui->tbwResult->setItem(i_row, 8,  new QTableWidgetItem(QString::number(recover_result.recoveredBlock)));
+    ui->tbwResult->setItem(i_row, 9,  new QTableWidgetItem(QString::number(recover_result.recoveredRate, 'f', 2).append('%')));
+    ui->tbwResult->setItem(i_row, 10, new QTableWidgetItem(QString::number(recover_result.recoveredTime, 'f', 2).append('s')));
 
     /* 设置焦点到新增行的第一列，并选中整行 */
     ui->tbwResult->setCurrentCell(i_row, 0);
     ui->tbwResult->selectRow(i_row); // 选中整行
+
+    /* 保存整条运算结果 */
+    _listResultComput->append(recover_result);
+}
+
+bool MainWindow::saveResultComputToCSV(const QString &filePath)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        qDebug() << "Unable to open file for writing:" << file.errorString();
+        return false;
+    }
+
+    QTextStream out(&file);
+    out << "sourceFilePath,hashAlg,blockSize,"
+           "totalBlock,hashRecordDB,repeatRecord,repeatRate,segTime,"
+           "recoveredBlock,recoveredRate,recoveredTime"
+           "\n";
+
+    /* 遍历 QList<ResultComput>，将每个 ResultComput 写入一行 CSV  */
+    for (const ResultComput& result : *_listResultComput)
+    {
+        out << result.sourceFilePath << ','  // 源文件路径
+            << Hash::getHashName(result.hashAlg)  << ','  // 分块/恢复所用的哈希函数
+            << result.blockSize      << ','  // 分块大小
+            << result.totalBlock     << ','  // 源文件被分成了多少块
+            << result.hashRecordDB   << ','  // 数据库数据表中中记录的哈希条数
+            << result.repeatRecord   << ','  // 重复的哈希值/块数量
+            << result.repeatRate     << ','  // 重复率
+            << result.segTime        << ','  // 分块任务所用的时间
+            << result.recoveredBlock << ','  // 成功恢复的块数量
+            << result.recoveredRate  << ','  // 恢复率
+            << result.recoveredTime  << "\n";// 恢复任务所用时间
+    }
+
+    qDebug() << "Successed save result compute to path:" << filePath;
+    file.close();
+    return true;
 }
 
 
@@ -567,6 +610,10 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
     delete _asyncJob;
     delete _threadAsyncJob;
+
+    /* 自动保存运算结果到 CSV */
+    saveResultComputToCSV(QDir::currentPath().append("result_compute.csv"));
+    delete _listResultComput;
 
     saveSettings();
     event->accept();

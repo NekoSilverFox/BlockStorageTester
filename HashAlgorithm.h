@@ -7,6 +7,7 @@
 #include <QByteArray>
 
 enum HashAlg {
+    NONE   = -1,
     MD5    = 0,
     SHA1   = 1,
     SHA256 = 2,

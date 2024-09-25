@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "AsyncComputeModule.h"
+#include "ResultComput.h"
 
 #include <QMainWindow>
 #include <QThread>
@@ -25,12 +26,13 @@ public:
     void writeSuccLog(const QString& msg);
 
     /* 准备数据并且发送信号执行测试 */
-    void startTestSegmentationPerformance();  // 测试分块分割（segmentation）写入性能
-    void startTestRecoverPerformance();  // 测试分块恢复性能
+    void startTestSegmentationPerformance();    // 测试分块分割（segmentation）写入性能
+    void startTestRecoverPerformance();         // 测试分块恢复性能
 
-    /* 结果展示 */
-    void addSegmentationResult(const QList<QString>& seg_result);
-    void addRecoverResult(const QList<QString>& recover_result);
+    /* 结果展示 & 保存 */
+    void addSegmentationResult(const ResultComput& seg_result);
+    void addRecoverResult(const ResultComput& recover_result);
+    bool saveResultComputToCSV(const QString& filePath);
 
     /* 数据库链接指示灯 */
     void setLbDBConnectedStyle(QString style);
@@ -64,6 +66,7 @@ private:
 
     QThread* _threadAsyncJob;       // 用于计算的线程
     AsyncComputeModule* _asyncJob;  // 并行计算任务
+    QList<ResultComput>* _listResultComput;  // 所有任务的计算结果
 
     bool is_db_conn;   // 子线程数据库连接状态
 };

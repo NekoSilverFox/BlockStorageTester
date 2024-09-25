@@ -5,6 +5,7 @@
 
 #include "DatabaseService.h"
 #include "HashAlgorithm.h"
+#include "ResultComput.h"
 
 /**
  * @brief [Asynchronous Computation Module] 异步计算模块，执行所需的数据库、文件IO、计算等复杂的或耗时的计算任务。注意：最好使用单独的线程调用这个模块
@@ -83,8 +84,8 @@ signals:
     bool signalTestRecoverPerformanceFinished(const bool is_succ);        // ↑ 任务完成信号
 
     /* 发送计算结果 */
-    void signalCurSegmentationResult(const QList<QString>& seg_result);
-    void signalCurRecoverResult(const QList<QString>& recover_result);
+    void signalCurSegmentationResult(const ResultComput& seg_result);
+    void signalCurRecoverResult(const ResultComput& recover_result);
 
 private:
     QString getCurrentThreadID() const;
@@ -92,7 +93,8 @@ private:
 
 private:
     DatabaseService* _dbs; // 当前操作的数据库对象
-    QString _last_log;     // 最后一条日志信息
+    ResultComput     _cur_result_comput; // 存储当前计算任务的结果
+    QString          _last_log;     // 最后一条日志信息
 };
 
 #endif // ASYNCCOMPUTEMODULE_H

@@ -94,7 +94,7 @@ private:
 private:
     DatabaseService* _dbs; // 当前操作的数据库对象
     ResultComput     _cur_result_comput; // 存储当前计算任务的结果
-    QString _last_log;     // 最后一条日志信息
+    QString          _last_log;     // 最后一条日志信息
 };
 
 #endif // ASYNCCOMPUTEMODULE_H

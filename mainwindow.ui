@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>931</width>
-    <height>901</height>
+    <width>1562</width>
+    <height>891</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,195 +20,559 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
     <item>
-     <widget class="QGroupBox" name="groupBox">
-      <property name="font">
-       <font>
-        <pointsize>13</pointsize>
-       </font>
-      </property>
-      <property name="title">
-       <string>⓵ DataBase</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="1" column="2">
-        <widget class="QWidget" name="widget_2" native="true">
-         <layout class="QGridLayout" name="gridLayout_3">
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="leHost"/>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Port</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Qt Driver</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="leDriver">
-            <property name="text">
-             <string>QPSQL</string>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="4">
-           <widget class="QLineEdit" name="leDatabase"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Host</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="4">
-           <widget class="QLineEdit" name="lePort"/>
-          </item>
-          <item row="4" column="3">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Database</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>User</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="leUser"/>
-          </item>
-          <item row="2" column="3">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Password</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="4">
-           <widget class="QLineEdit" name="lePassword">
-            <property name="echoMode">
-             <enum>QLineEdit::EchoMode::Password</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Maximum</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>30</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QWidget" name="widget" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QLabel" name="lbPicSQLServer">
-            <property name="maximumSize">
-             <size>
-              <width>90</width>
-              <height>90</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QWidget" name="widget_3" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QPushButton" name="btnConnectDB">
-            <property name="text">
-             <string>Connect</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnDisconnect">
-            <property name="text">
-             <string>Disconnect</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbAutoDropDB">
-            <property name="text">
-             <string> Auto drop DB</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_4" native="true">
-            <layout class="QFormLayout" name="formLayout">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
+     <widget class="QWidget" name="widget_10" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="font">
+          <font>
+           <pointsize>13</pointsize>
+          </font>
+         </property>
+         <property name="title">
+          <string>⓵ DataBase</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="1" column="2">
+           <widget class="QWidget" name="widget_2" native="true">
+            <layout class="QGridLayout" name="gridLayout_3">
              <property name="topMargin">
               <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>5</number>
              </property>
              <property name="bottomMargin">
               <number>0</number>
              </property>
-             <item row="0" column="0">
-              <widget class="QLabel" name="lbDBConnected">
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="leHost"/>
+             </item>
+             <item row="1" column="3">
+              <widget class="QLabel" name="label_3">
                <property name="text">
-                <string>●</string>
+                <string>Port</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QLabel" name="label_11">
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_6">
                <property name="text">
-                <string>DB Connected</string>
+                <string>Qt Driver</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="leDriver">
+               <property name="text">
+                <string>QPSQL</string>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="4">
+              <widget class="QLineEdit" name="leDatabase"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Host</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="4">
+              <widget class="QLineEdit" name="lePort"/>
+             </item>
+             <item row="4" column="3">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Database</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>User</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="leUser"/>
+             </item>
+             <item row="2" column="3">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>Password</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="4">
+              <widget class="QLineEdit" name="lePassword">
+               <property name="echoMode">
+                <enum>QLineEdit::EchoMode::Password</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <spacer name="horizontalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Policy::Maximum</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>30</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QWidget" name="widget" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
+              <widget class="QLabel" name="lbPicSQLServer">
+               <property name="maximumSize">
+                <size>
+                 <width>90</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QWidget" name="widget_3" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="btnConnectDB">
+               <property name="text">
+                <string>Connect</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnDisconnect">
+               <property name="text">
+                <string>Disconnect</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cbAutoDropDB">
+               <property name="text">
+                <string> Auto drop DB</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_4" native="true">
+               <layout class="QFormLayout" name="formLayout">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>5</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lbDBConnected">
+                  <property name="text">
+                   <string>●</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLabel" name="label_11">
+                  <property name="text">
+                   <string>DB Connected</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <kerning>true</kerning>
+          </font>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::ContextMenuPolicy::DefaultContextMenu</enum>
+         </property>
+         <property name="title">
+          <string>⓶ Input Segmentation and Recover infomation</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QWidget" name="widget_6" native="true">
+            <layout class="QGridLayout" name="gridLayout_2">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_16">
+               <property name="text">
+                <string>Block     file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QPushButton" name="btnSelectBlockFile">
+               <property name="text">
+                <string>Select</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QPushButton" name="btnSelectSourceFile">
+               <property name="text">
+                <string>Select</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="leBlockFile"/>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="leSourceFile"/>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>Source  file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_23">
+               <property name="text">
+                <string>Recover file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="leRecoverFile"/>
+             </item>
+             <item row="2" column="2">
+              <widget class="QPushButton" name="btnSelectRecoverFile">
+               <property name="text">
+                <string>Select</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QWidget" name="widget_5" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_17">
+               <property name="text">
+                <string>Every block</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cbBlockSize">
+               <item>
+                <property name="text">
+                 <string notr="true">4</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">8</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">16</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">32</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">64</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">128</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">256</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">512</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">1024</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">2048</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_14">
+               <property name="text">
+                <string>Bytes</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_5">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Policy::Minimum</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>50</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_22">
+               <property name="text">
+                <string>Hash algorithm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="cbHashAlg">
+               <item>
+                <property name="text">
+                 <string notr="true">MD5</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">SHA1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">SHA256</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">SHA512</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Policy::Minimum</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>50</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRunTest">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <bold>true</bold>
+                 <kerning>true</kerning>
+                </font>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="text">
+                <string>Run Single Test</string>
+               </property>
+               <property name="autoDefault">
+                <bool>false</bool>
+               </property>
+               <property name="default">
+                <bool>true</bool>
+               </property>
+               <property name="flat">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lbSegmentation">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                 <kerning>true</kerning>
+                </font>
+               </property>
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::WinPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>1</number>
+               </property>
+               <property name="text">
+                <string>● Segmentation</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lbRecover">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                 <kerning>true</kerning>
+                </font>
+               </property>
+               <property name="locale">
+                <locale language="English" country="UnitedStates"/>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::WinPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>1</number>
+               </property>
+               <property name="text">
+                <string>● Recover</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -218,458 +582,273 @@
          </layout>
         </widget>
        </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <kerning>true</kerning>
-       </font>
-      </property>
-      <property name="contextMenuPolicy">
-       <enum>Qt::ContextMenuPolicy::DefaultContextMenu</enum>
-      </property>
-      <property name="title">
-       <string>⓶ Input Segmentation and Recover infomation</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_4">
-       <property name="bottomMargin">
-        <number>12</number>
-       </property>
-       <item row="0" column="0">
-        <widget class="QWidget" name="widget_6" native="true">
-         <layout class="QGridLayout" name="gridLayout_2">
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="font">
+          <font>
+           <pointsize>13</pointsize>
+          </font>
+         </property>
+         <property name="title">
+          <string>⓷ Segmentation ouput infomation</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5">
           <property name="topMargin">
-           <number>0</number>
+           <number>6</number>
           </property>
           <property name="bottomMargin">
-           <number>0</number>
+           <number>6</number>
           </property>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_16">
-            <property name="text">
-             <string>Block     file</string>
+          <item row="1" column="3">
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Policy::Maximum</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="1">
+           <widget class="QWidget" name="widget_7" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLCDNumber" name="lcdTotalFileBlocks">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                 <bold>false</bold>
+                 <kerning>true</kerning>
+                </font>
+               </property>
+               <property name="layoutDirection">
+                <enum>Qt::LayoutDirection::LeftToRight</enum>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::Box</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Raised</enum>
+               </property>
+               <property name="smallDecimalPoint">
+                <bool>false</bool>
+               </property>
+               <property name="digitCount">
+                <number>16</number>
+               </property>
+               <property name="segmentStyle">
+                <enum>QLCDNumber::SegmentStyle::Flat</enum>
+               </property>
+               <property name="intValue" stdset="0">
+                <number>123456789</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QPushButton" name="btnSelectBlockFile">
+           <widget class="QLabel" name="label_24">
+            <property name="minimumSize">
+             <size>
+              <width>25</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>30</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>28</pointsize>
+             </font>
+            </property>
             <property name="text">
-             <string>Select</string>
+             <string>%</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="btnSelectSourceFile">
-            <property name="text">
-             <string>Select</string>
+          <item row="0" column="3">
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
-           </widget>
+            <property name="sizeType">
+             <enum>QSizePolicy::Policy::Maximum</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="leBlockFile"/>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="leSourceFile"/>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_15">
-            <property name="text">
-             <string>Source  file</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_23">
-            <property name="text">
-             <string>Recover file</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="leRecoverFile"/>
-          </item>
-          <item row="2" column="2">
-           <widget class="QPushButton" name="btnSelectRecoverFile">
-            <property name="text">
-             <string>Select</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QWidget" name="widget_5" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_17">
-            <property name="text">
-             <string>Every block</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="cbBlockSize">
-            <item>
-             <property name="text">
-              <string notr="true">4</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">8</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">16</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">32</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">64</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">128</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">256</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">512</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">1024</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">2048</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string>Bytes</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Minimum</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>50</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string>Hash algorithm</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="cbHashAlg">
-            <item>
-             <property name="text">
-              <string notr="true">MD5</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">SHA1</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">SHA256</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">SHA512</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Minimum</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>50</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnRunTest">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-              <bold>true</bold>
-              <kerning>true</kerning>
-             </font>
-            </property>
-            <property name="cursor">
-             <cursorShape>PointingHandCursor</cursorShape>
-            </property>
-            <property name="text">
-             <string>Run Single Test</string>
-            </property>
-            <property name="autoDefault">
-             <bool>false</bool>
-            </property>
-            <property name="default">
-             <bool>true</bool>
-            </property>
-            <property name="flat">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lbSegmentation">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-              <italic>true</italic>
-              <bold>true</bold>
-              <kerning>true</kerning>
-             </font>
-            </property>
-            <property name="locale">
-             <locale language="English" country="UnitedStates"/>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Shape::WinPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Plain</enum>
-            </property>
-            <property name="lineWidth">
-             <number>1</number>
-            </property>
-            <property name="text">
-             <string>● Segmentation</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lbRecover">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-              <italic>true</italic>
-              <bold>true</bold>
-              <kerning>true</kerning>
-             </font>
-            </property>
-            <property name="locale">
-             <locale language="English" country="UnitedStates"/>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Shape::WinPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Plain</enum>
-            </property>
-            <property name="lineWidth">
-             <number>1</number>
-            </property>
-            <property name="text">
-             <string>● Recover</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="groupBox_4">
-      <property name="font">
-       <font>
-        <pointsize>13</pointsize>
-       </font>
-      </property>
-      <property name="title">
-       <string>⓷ Segmentation ouput infomation</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_5">
-       <item row="1" column="4">
-        <widget class="QLabel" name="label_21">
-         <property name="text">
-          <string>Use time (s)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Policy::Maximum</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="5">
-        <widget class="QLCDNumber" name="lcdSegmentationTime">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>40</height>
-          </size>
-         </property>
-         <property name="smallDecimalPoint">
-          <bool>false</bool>
-         </property>
-         <property name="digitCount">
-          <number>12</number>
-         </property>
-         <property name="segmentStyle">
-          <enum>QLCDNumber::SegmentStyle::Flat</enum>
-         </property>
-         <property name="value" stdset="0">
-          <double>123456789.000000000000000</double>
-         </property>
-         <property name="intValue" stdset="0">
-          <number>123456789</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Policy::Maximum</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="1">
-        <widget class="QWidget" name="widget_8" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>150</width>
-           <height>0</height>
-          </size>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLCDNumber" name="lcdTotalRepeat">
+           <widget class="QWidget" name="widget_8" native="true">
             <property name="minimumSize">
              <size>
               <width>150</width>
+              <height>0</height>
+             </size>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLCDNumber" name="lcdTotalRepeat">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="digitCount">
+                <number>10</number>
+               </property>
+               <property name="segmentStyle">
+                <enum>QLCDNumber::SegmentStyle::Flat</enum>
+               </property>
+               <property name="intValue" stdset="0">
+                <number>123456789</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLCDNumber" name="lcdRepeatPercent">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                 <italic>false</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="digitCount">
+                <number>6</number>
+               </property>
+               <property name="segmentStyle">
+                <enum>QLCDNumber::SegmentStyle::Flat</enum>
+               </property>
+               <property name="value" stdset="0">
+                <double>123.560000000000002</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_20">
+            <property name="text">
+             <string>Total Repeated-records</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="5">
+           <widget class="QLCDNumber" name="lcdSegmentationTime">
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
               <height>40</height>
              </size>
             </property>
+            <property name="smallDecimalPoint">
+             <bool>false</bool>
+            </property>
             <property name="digitCount">
-             <number>10</number>
+             <number>12</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::SegmentStyle::Flat</enum>
+            </property>
+            <property name="value" stdset="0">
+             <double>123456789.000000000000000</double>
+            </property>
+            <property name="intValue" stdset="0">
+             <number>123456789</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>Total DB-Hash-records</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>Total File-blocks</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>Use time (s)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5">
+           <widget class="QLCDNumber" name="lcdTotalDbHashRecords">
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Raised</enum>
+            </property>
+            <property name="digitCount">
+             <number>12</number>
             </property>
             <property name="segmentStyle">
              <enum>QLCDNumber::SegmentStyle::Flat</enum>
@@ -679,79 +858,177 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLCDNumber" name="lcdRepeatPercent">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>13</pointsize>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="digitCount">
-             <number>6</number>
-            </property>
-            <property name="segmentStyle">
-             <enum>QLCDNumber::SegmentStyle::Flat</enum>
-            </property>
-            <property name="value" stdset="0">
-             <double>123.560000000000002</double>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QWidget" name="widget_7" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="font">
+          <font>
+           <pointsize>13</pointsize>
+          </font>
+         </property>
+         <property name="title">
+          <string>⓸ Recover ouput infomation</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_6">
           <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
+           <number>6</number>
           </property>
           <property name="bottomMargin">
-           <number>0</number>
+           <number>6</number>
           </property>
-          <item>
-           <widget class="QLCDNumber" name="lcdTotalFileBlocks">
+          <item row="0" column="5">
+           <widget class="QLCDNumber" name="lcdTotalUnrecovered">
             <property name="minimumSize">
              <size>
-              <width>150</width>
+              <width>200</width>
               <height>40</height>
              </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>13</pointsize>
-              <bold>false</bold>
-              <kerning>true</kerning>
-             </font>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::LayoutDirection::LeftToRight</enum>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="frameShadow">
              <enum>QFrame::Shadow::Raised</enum>
             </property>
-            <property name="smallDecimalPoint">
-             <bool>false</bool>
+            <property name="digitCount">
+             <number>12</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::SegmentStyle::Flat</enum>
+            </property>
+            <property name="intValue" stdset="0">
+             <number>123456789</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_25">
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Plain</enum>
+            </property>
+            <property name="text">
+             <string>Total Hash-records in file</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <spacer name="horizontalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Policy::Maximum</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="label_27">
+            <property name="minimumSize">
+             <size>
+              <width>25</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>30</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>28</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>%</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QWidget" name="widget_9" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>0</height>
+             </size>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLCDNumber" name="lcdTotalRecovered">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="digitCount">
+                <number>10</number>
+               </property>
+               <property name="segmentStyle">
+                <enum>QLCDNumber::SegmentStyle::Flat</enum>
+               </property>
+               <property name="intValue" stdset="0">
+                <number>123456789</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLCDNumber" name="lcdRecoveredPercent">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                 <italic>false</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="digitCount">
+                <number>6</number>
+               </property>
+               <property name="segmentStyle">
+                <enum>QLCDNumber::SegmentStyle::Flat</enum>
+               </property>
+               <property name="value" stdset="0">
+                <double>123.560000000000002</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLCDNumber" name="lcdNumNeedRecover">
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Raised</enum>
             </property>
             <property name="digitCount">
              <number>16</number>
@@ -764,327 +1041,86 @@
             </property>
            </widget>
           </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="0" column="4">
-        <widget class="QLabel" name="label_19">
-         <property name="text">
-          <string>Total DB-Hash-records</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="5">
-        <widget class="QLCDNumber" name="lcdTotalDbHashRecords">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>40</height>
-          </size>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Raised</enum>
-         </property>
-         <property name="digitCount">
-          <number>12</number>
-         </property>
-         <property name="segmentStyle">
-          <enum>QLCDNumber::SegmentStyle::Flat</enum>
-         </property>
-         <property name="intValue" stdset="0">
-          <number>123456789</number>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_18">
-         <property name="text">
-          <string>Total File-blocks</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_20">
-         <property name="text">
-          <string>Total Repeated-records</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_24">
-         <property name="minimumSize">
-          <size>
-           <width>25</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>30</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>28</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>%</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="groupBox_3">
-      <property name="font">
-       <font>
-        <pointsize>13</pointsize>
-       </font>
-      </property>
-      <property name="title">
-       <string>⓸ Recover ouput infomation</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_6">
-       <item row="0" column="5">
-        <widget class="QLCDNumber" name="lcdTotalUnrecovered">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>40</height>
-          </size>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Raised</enum>
-         </property>
-         <property name="digitCount">
-          <number>12</number>
-         </property>
-         <property name="segmentStyle">
-          <enum>QLCDNumber::SegmentStyle::Flat</enum>
-         </property>
-         <property name="intValue" stdset="0">
-          <number>123456789</number>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_25">
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Plain</enum>
-         </property>
-         <property name="text">
-          <string>Total Hash-records in file</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <spacer name="horizontalSpacer_7">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Policy::Maximum</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_27">
-         <property name="minimumSize">
-          <size>
-           <width>25</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>30</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>28</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>%</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QWidget" name="widget_9" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>150</width>
-           <height>0</height>
-          </size>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLCDNumber" name="lcdTotalRecovered">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_26">
+            <property name="text">
+             <string>Total Recovered-blocks</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="label_28">
+            <property name="text">
+             <string>Total Unrecovered-blocks</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QLabel" name="label_29">
+            <property name="text">
+             <string>Use time (s)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="5">
+           <widget class="QLCDNumber" name="lcdRecoverTime">
             <property name="minimumSize">
              <size>
-              <width>150</width>
+              <width>200</width>
               <height>40</height>
              </size>
             </property>
+            <property name="smallDecimalPoint">
+             <bool>false</bool>
+            </property>
             <property name="digitCount">
-             <number>10</number>
+             <number>12</number>
             </property>
             <property name="segmentStyle">
              <enum>QLCDNumber::SegmentStyle::Flat</enum>
+            </property>
+            <property name="value" stdset="0">
+             <double>123456789.000000000000000</double>
             </property>
             <property name="intValue" stdset="0">
              <number>123456789</number>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLCDNumber" name="lcdRecoveredPercent">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>13</pointsize>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="digitCount">
-             <number>6</number>
-            </property>
-            <property name="segmentStyle">
-             <enum>QLCDNumber::SegmentStyle::Flat</enum>
-            </property>
-            <property name="value" stdset="0">
-             <double>123.560000000000002</double>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QLCDNumber" name="lcdNumNeedRecover">
+       <item>
+        <widget class="QTextBrowser" name="txbLog">
          <property name="minimumSize">
           <size>
-           <width>200</width>
-           <height>40</height>
+           <width>0</width>
+           <height>90</height>
           </size>
          </property>
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Raised</enum>
-         </property>
-         <property name="digitCount">
-          <number>16</number>
-         </property>
-         <property name="segmentStyle">
-          <enum>QLCDNumber::SegmentStyle::Flat</enum>
-         </property>
-         <property name="intValue" stdset="0">
-          <number>123456789</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_26">
-         <property name="text">
-          <string>Total Recovered-blocks</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4">
-        <widget class="QLabel" name="label_28">
-         <property name="text">
-          <string>Total Unrecovered-blocks</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4">
-        <widget class="QLabel" name="label_29">
-         <property name="text">
-          <string>Use time (s)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="5">
-        <widget class="QLCDNumber" name="lcdRecoverTime">
-         <property name="minimumSize">
+         <property name="maximumSize">
           <size>
-           <width>200</width>
-           <height>40</height>
+           <width>16777215</width>
+           <height>200</height>
           </size>
          </property>
-         <property name="smallDecimalPoint">
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="tbwResult">
+         <property name="textElideMode">
+          <enum>Qt::TextElideMode::ElideMiddle</enum>
+         </property>
+         <attribute name="horizontalHeaderCascadingSectionResizes">
           <bool>false</bool>
-         </property>
-         <property name="digitCount">
-          <number>12</number>
-         </property>
-         <property name="segmentStyle">
-          <enum>QLCDNumber::SegmentStyle::Flat</enum>
-         </property>
-         <property name="value" stdset="0">
-          <double>123456789.000000000000000</double>
-         </property>
-         <property name="intValue" stdset="0">
-          <number>123456789</number>
-         </property>
+         </attribute>
         </widget>
        </item>
       </layout>
      </widget>
     </item>
     <item>
-     <widget class="QTextBrowser" name="txbLog">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>90</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>200</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QTableWidget" name="tbwResult">
-      <property name="textElideMode">
-       <enum>Qt::TextElideMode::ElideMiddle</enum>
-      </property>
-      <attribute name="horizontalHeaderCascadingSectionResizes">
-       <bool>false</bool>
-      </attribute>
-     </widget>
+     <widget class="QGraphicsView" name="graphicsView"/>
     </item>
    </layout>
   </widget>
@@ -1093,7 +1129,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>931</width>
+     <width>1562</width>
      <height>24</height>
     </rect>
    </property>
@@ -1132,7 +1168,6 @@
   <tabstop>leSourceFile</tabstop>
   <tabstop>leBlockFile</tabstop>
   <tabstop>btnDisconnect</tabstop>
-  <tabstop>txbLog</tabstop>
  </tabstops>
  <resources/>
  <connections/>

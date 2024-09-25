@@ -48,8 +48,8 @@ MainWindow::MainWindow(QWidget *parent)
     /* 运算结果 */
     QStringList res_list_header;
     res_list_header << "File" << "Hash alg" << "Block size"  << "Total blocks"
-                    << "Hash records" << "Repeat records" << "Repeat rate" << "Seg time(s)"
-                    << "Recovered blocks" << "Recovered rate" << "Recover time(s)";
+                    << "Hash records" << "Repeat records" << "Repeat rate" << "Seg time"
+                    << "Recovered blocks" << "Recovered rate" << "Recover time";
     ui->tbwResult->setColumnCount(res_list_header.size());
     ui->tbwResult->setHorizontalHeaderLabels(res_list_header);
     ui->tbwResult->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);

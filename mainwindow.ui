@@ -1192,25 +1192,6 @@
      </widget>
     </item>
     <item>
-     <widget class="Line" name="line">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Shadow::Raised</enum>
-      </property>
-      <property name="lineWidth">
-       <number>10</number>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="QWidget" name="widget_chart" native="true">
       <property name="minimumSize">
        <size>

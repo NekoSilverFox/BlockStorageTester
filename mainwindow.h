@@ -6,6 +6,12 @@
 
 #include <QMainWindow>
 #include <QThread>
+#include <QValueAxis>
+#include <QChartView>
+#include <QChart>
+#include <QSplineSeries>
+#include <QScatterSeries>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -50,6 +56,14 @@ private:
     /* 数据库 & 数据表相关操作 */
     void asyncJobDbConnStateChanged(const bool is_conn);
 
+    /* 绘图 */
+    void initCharts();
+    bool initChart(QChartView* chartView,
+                   QChart* chart, QString chart_tital, QFont chart_tital_font,
+                   QSplineSeries* spline, QScatterSeries* scatter,
+                   QValueAxis* x, QString x_tital,
+                   QValueAxis* y, QString y_tital);
+
 private slots:
     void setActivityWidget(const bool activity);
 
@@ -64,10 +78,26 @@ private slots:
 private:
     Ui::MainWindow* ui;
 
-    QThread* _threadAsyncJob;       // 用于计算的线程
-    AsyncComputeModule* _asyncJob;  // 并行计算任务
-    QList<ResultComput>* _listResultComput;  // 所有任务的计算结果
+    QThread*                _threadAsyncJob;    // 用于计算的线程
+    AsyncComputeModule*     _asyncJob;          // 并行计算任务
+    QList<ResultComput>*    _listResultComput;  // 所有任务的计算结果
 
     bool is_db_conn;   // 子线程数据库连接状态
+
+    /* 绘图区 */
+    QChart*     _chart_seg_time;    // 画布 - 分块时间
+    QChart*     _chart_recover_time;// 画布 - 恢复时间
+    QChart*     _chart_repeat_rate; // 画布 - 哈希重复率
+
+    QSplineSeries*  _spline_seg_time;       // 平滑曲线 - 分块时间
+    QSplineSeries*  _spline_recover_time;   // 平滑曲线 - 恢复时间
+    QSplineSeries*  _spline_repeat_rate;    // 平滑曲线 - 哈希重复率
+
+    QScatterSeries* _scatter_seg_time;       // 数据点 - 分块时间
+    QScatterSeries* _scatter_recover_time;   // 数据点 - 恢复时间
+    QScatterSeries* _scatter_repeat_rate;    // 数据点 - 哈希重复率
+
+    QFont*      _font_tital;        // 字体 - 标题
+
 };
 #endif // MAINWINDOW_H

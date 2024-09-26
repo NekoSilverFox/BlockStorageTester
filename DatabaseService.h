@@ -33,6 +33,7 @@ public:
     bool updateCounter(const QString& tbName, const QByteArray& blockHash, int count);
     int getTableRowCount(const QString& tbName);
     BlockInfo getBlockInfo(const QString& tbName, const QByteArray& blockHash);
+    bool clearDatabase();   // 清空数据库（删除所有的表,schema）
 
     /* getter 方法*/
     QString getHost();

@@ -223,7 +223,6 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
         return false;
     }
 
-    QSqlQuery q;
     /**
      * block_hash           块的哈希值
      * source_file_path     块所在的源文件 TODO 确认这里都改了
@@ -241,6 +240,7 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
     qDebug() << QString("Create table `%1`").arg(tbName);
     qDebug() << QString("↳ Run SQL: %1").arg(sql);
 
+    QSqlQuery q;
     if (q.exec(sql))
     {
         _last_log = QString("Successed create table `%1`").arg(tbName);
@@ -497,6 +497,68 @@ BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray 
     }
 
     return BlockInfo();  // 查询失败或没有找到匹配记录时返回 空对象
+}
+
+bool DatabaseService::clearDatabase()
+{
+    if (!isDatabaseOpen())
+    {
+        return false;
+    }
+
+
+    // SQL语句：删除 public schema 及其所有内容
+    QString dropSchemaSql = "DROP SCHEMA public CASCADE;";
+    QString createSchemaSql = "CREATE SCHEMA public;";
+    QString grantSchemaSql1 = "GRANT ALL ON SCHEMA public TO postgres;";
+    QString grantSchemaSql2 = "GRANT ALL ON SCHEMA public TO public;";
+
+    _last_sql = dropSchemaSql;
+    qDebug() << "↳ Run SQL: " << _last_sql;
+
+    // 执行删除 public schema 的操作
+    QSqlQuery q;
+    if (!q.exec(dropSchemaSql))
+    {
+        _last_log = QString("Failed to drop schema `public`: %1").arg(q.lastError().text());
+        qDebug() << _last_log;
+        return false;
+    }
+
+    // 重新创建 public schema
+    _last_sql = createSchemaSql;
+    qDebug() << "↳ Run SQL: " << _last_sql;
+    if (!q.exec(createSchemaSql))
+    {
+        _last_log = QString("Failed to create schema `public`: %1").arg(q.lastError().text());
+        qDebug() << _last_log;
+        return false;
+    }
+
+    // 赋予 postgres 用户权限
+    _last_sql = grantSchemaSql1;
+    qDebug() << "↳ Run SQL: " << _last_sql;
+    if (!q.exec(grantSchemaSql1))
+    {
+        _last_log = QString("Failed to grant permissions to postgres: %1").arg(q.lastError().text());
+        qDebug() << _last_log;
+        return false;
+    }
+
+    // 赋予 public 用户权限
+    _last_sql = grantSchemaSql2;
+    qDebug() << "↳ Run SQL: " << _last_sql;
+    if (!q.exec(grantSchemaSql2))
+    {
+        _last_log = QString("Failed to grant permissions to public: %1").arg(q.lastError().text());
+        qDebug() << _last_log;
+        return false;
+    }
+
+    // 所有操作成功
+    _last_log = "Successfully cleared the database (all tables dropped)";
+    qDebug() << _last_log;
+    return true;
 }
 
 

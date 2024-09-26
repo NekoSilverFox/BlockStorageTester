@@ -57,7 +57,7 @@ private:
     void asyncJobDbConnStateChanged(const bool is_conn);
 
     /* 绘图 */
-    void initCharts();
+    void initAllCharts();
     bool initChart(QChartView* chartView,
                    QChart* chart, QString chart_tital, QFont chart_tital_font,
                    QSplineSeries* spline, QScatterSeries* scatter,

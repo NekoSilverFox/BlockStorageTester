@@ -98,7 +98,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     /* 图表显示 */
-    initCharts();
+    initAllCharts();
 
     /* 连接信号和槽 */
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::aboutThisProject);
@@ -231,7 +231,7 @@ void MainWindow::asyncJobDbConnStateChanged(const bool is_conn)
     }
 }
 
-void MainWindow::initCharts()
+void MainWindow::initAllCharts()
 {
     /* 图表显示 */
     delete _chart_seg_time      ;    // 画布 - 分块时间
@@ -749,10 +749,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
     delete _asyncJob;
     delete _threadAsyncJob;
 
-    delete _chart_seg_time      ;    // 画布 - 分块时间
-    delete _chart_recover_time  ;    // 画布 - 恢复时间
-    delete _chart_repeat_rate   ;    // 画布 - 哈希重复率
-
     delete _spline_seg_time     ;    // 平滑曲线 - 分块时间
     delete _spline_recover_time ;    // 平滑曲线 - 恢复时间
     delete _spline_repeat_rate  ;    // 平滑曲线 - 哈希重复率
@@ -760,6 +756,11 @@ void MainWindow::closeEvent(QCloseEvent* event)
     delete _scatter_seg_time    ;    // 数据点 - 分块时间
     delete _scatter_recover_time;    // 数据点 - 恢复时间
     delete _scatter_repeat_rate ;    // 数据点 - 哈希重复率
+
+    /* 注意，画布最后再删除，因为上面图表对象是chart的子对象 */
+    delete _chart_seg_time      ;    // 画布 - 分块时间
+    delete _chart_recover_time  ;    // 画布 - 恢复时间
+    delete _chart_repeat_rate   ;    // 画布 - 哈希重复率
 
     delete _font_tital    ;     // 字体 - 标题
 

@@ -506,7 +506,6 @@ bool DatabaseService::clearDatabase()
         return false;
     }
 
-
     // SQL语句：删除 public schema 及其所有内容
     QString dropSchemaSql = "DROP SCHEMA public CASCADE;";
     QString createSchemaSql = "CREATE SCHEMA public;";
@@ -514,50 +513,65 @@ bool DatabaseService::clearDatabase()
     QString grantSchemaSql2 = "GRANT ALL ON SCHEMA public TO public;";
 
     _last_sql = dropSchemaSql;
-    qDebug() << "↳ Run SQL: " << _last_sql;
 
     // 执行删除 public schema 的操作
     QSqlQuery q;
     if (!q.exec(dropSchemaSql))
     {
         _last_log = QString("Failed to drop schema `public`: %1").arg(q.lastError().text());
+#if !QT_NO_DEBUG
         qDebug() << _last_log;
+#endif
         return false;
     }
 
     // 重新创建 public schema
     _last_sql = createSchemaSql;
-    qDebug() << "↳ Run SQL: " << _last_sql;
+#if !QT_NO_DEBUG
+    qDebug() << _last_log;
+#endif
     if (!q.exec(createSchemaSql))
     {
         _last_log = QString("Failed to create schema `public`: %1").arg(q.lastError().text());
+#if !QT_NO_DEBUG
         qDebug() << _last_log;
+#endif
         return false;
     }
 
     // 赋予 postgres 用户权限
     _last_sql = grantSchemaSql1;
-    qDebug() << "↳ Run SQL: " << _last_sql;
+#if !QT_NO_DEBUG
+    qDebug() << _last_log;
+#endif
     if (!q.exec(grantSchemaSql1))
     {
         _last_log = QString("Failed to grant permissions to postgres: %1").arg(q.lastError().text());
+#if !QT_NO_DEBUG
         qDebug() << _last_log;
+#endif
         return false;
     }
 
     // 赋予 public 用户权限
     _last_sql = grantSchemaSql2;
-    qDebug() << "↳ Run SQL: " << _last_sql;
+#if !QT_NO_DEBUG
+    qDebug() << _last_log;
+#endif
     if (!q.exec(grantSchemaSql2))
     {
         _last_log = QString("Failed to grant permissions to public: %1").arg(q.lastError().text());
+#if !QT_NO_DEBUG
         qDebug() << _last_log;
+#endif
         return false;
     }
 
     // 所有操作成功
     _last_log = "Successfully cleared the database (all tables dropped)";
+#if !QT_NO_DEBUG
     qDebug() << _last_log;
+#endif
     return true;
 }
 

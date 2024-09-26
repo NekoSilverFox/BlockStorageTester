@@ -109,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
     connect(ui->btnSelectRecoverFile, &QPushButton::clicked, this, &MainWindow::selectRecoverFile);
 
-    connect(ui->btnRunTest, &QPushButton::clicked, this, &MainWindow::startTestSegmentationPerformance);
+    connect(ui->btnRunSingleTest, &QPushButton::clicked, this, &MainWindow::startTestSegmentationPerformance);
 
 
     /* 接收/处理子线程任务发出的信号 */
@@ -404,7 +404,10 @@ void MainWindow::setActivityWidget(const bool activity)
 
     ui->cbBlockSize->setEnabled(activity);
     ui->cbHashAlg->setEnabled(activity);
-    ui->btnRunTest->setEnabled(activity);
+    ui->btnRunSingleTest->setEnabled(activity);
+
+    ui->cbBenchmarkAlg->setEnabled(activity);
+    ui->btnRunBenchmarkTest->setEnabled(activity);
 }
 
 

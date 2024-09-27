@@ -552,6 +552,7 @@ void AsyncComputeModule::runBenchmarkTest(const QString &source_file_path, const
         tb = getTableName(block_size, alg);
         if (_dbs->isTableExists(tb))
         {
+
             _dbs->deleteTable(tb);
         }
 

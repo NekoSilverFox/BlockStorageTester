@@ -9,6 +9,7 @@
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QProgressBar>
+#include <QToolTip>
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -47,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent)
     _scatter_repeat_rate  = nullptr;
 
     _font_tital           = nullptr;
+
+    initAllCharts();
 
     setWindowIcon(QIcon(":/icons/logo.png"));
     ui->lbPicSQLServer->setPixmap(QPixmap(":/icons/sql-server.png"));
@@ -289,13 +292,13 @@ void MainWindow::initAllCharts()
     _chart_recover_time  = new QChart();
     _chart_repeat_rate   = new QChart();
 
-    _x_seg_time          = new QCategoryAxis();
-    _x_recover_time      = new QCategoryAxis();
-    _x_repeat_rate       = new QCategoryAxis();
+    _x_seg_time          = new QLogValueAxis();
+    _x_recover_time      = new QLogValueAxis();
+    _x_repeat_rate       = new QLogValueAxis();
 
-    _y_seg_time          = new QCategoryAxis();
-    _y_recover_time      = new QCategoryAxis();
-    _y_repeat_rate       = new QCategoryAxis();
+    _y_seg_time          = new QValueAxis();
+    _y_recover_time      = new QValueAxis();
+    _y_repeat_rate       = new QValueAxis();
 
     _spline_seg_time     = new QSplineSeries();
     _spline_recover_time = new QSplineSeries();
@@ -347,8 +350,8 @@ void MainWindow::initAllCharts()
 bool MainWindow::initChart(QChartView* chartView,
               QChart* chart, QString chart_tital, QFont chart_tital_font,
               QSplineSeries* spline, QScatterSeries* scatter,
-              QCategoryAxis* x, QString x_tital,
-              QCategoryAxis* y, QString y_tital)
+              QLogValueAxis* x, QString x_tital,
+              QValueAxis* y, QString y_tital)
 {
     writeInfoLog(QString("Start init chart %1").arg(chart_tital));
 
@@ -390,14 +393,20 @@ bool MainWindow::initChart(QChartView* chartView,
 
     chart->addAxis(x, Qt::AlignBottom);  // 【！！！注意：需要立刻放入chart！否则可能会出错！！！】
     x->setTitleText(x_tital);
-    x->setRange(0, 1024);
-    // x->setTickInterval(64);
-    x->append("0", 0);
+    // x->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
+    x->setBase(2);              // 基数为 2 (处理 2, 4, 8, 16...等倍数增长的数据)
+    x->setLabelFormat("%d");  // 设置标签格式，显示整数
+    x->setRange(4, 2048);
 
     chart->addAxis(y, Qt::AlignLeft);
     y->setTitleText(y_tital);
-    y->setRange(0, 1);
-    y->append("0", 0);
+    y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
+    y->setTickCount(10);
+    y->setLabelFormat("%.2f");  // 设置显示格式，保留两位小数
+    y->setRange(0.0, 1.0);
+    QFont axisFont;
+    axisFont.setPointSize(15);  // 设置合适的字体大小
+    y->setLabelsFont(axisFont);  // 应用字体到 Y 轴
 
     chart->addSeries(spline);
     spline->setColor(Qt::blue);
@@ -409,6 +418,16 @@ bool MainWindow::initChart(QChartView* chartView,
     scatter->setMarkerSize(ThemeStyle::SCATTER_MARK_SIZE);
     scatter->attachAxis(x);
     scatter->attachAxis(y);
+
+    // 当鼠标悬停在点上时，触发信号
+    QObject::connect(scatter, &QScatterSeries::hovered, [=](const QPointF& point, bool state) {
+        if (state) {
+            // 鼠标移动到点上，显示工具提示（也就是显示数据内容）
+            QToolTip::showText(QCursor::pos(),
+                               QString("X: %1, Y: %2").arg(point.x()).arg(point.y()),
+                               chartView);
+        }
+    });
 
     if (ui->cvSegTime->chart() != nullptr)
     {
@@ -462,25 +481,20 @@ bool MainWindow::addPointSegTimeAndRepeateRate(const ResultComput &result)
     writeInfoLog(QString("Add data point (%1, %2) to chart Seg time").arg(QString::number(result.blockSize), QString::number(result.segTime)));
     _spline_seg_time->append( result.blockSize, result.segTime);
     _scatter_seg_time->append(result.blockSize, result.segTime);
-    _x_seg_time->append(QString::number(result.blockSize), result.blockSize);
 
     if (result.segTime > _y_seg_time->max())
     {
         _y_seg_time->setRange(0.0, result.segTime);
     }
-    _y_seg_time->append(QString::number(result.segTime,'f', 2), result.segTime);
-
 
     writeInfoLog(QString("Add data point (%1, %2) to chart Repeate rate").arg(QString::number(result.blockSize), QString::number(result.repeatRate)));
     _spline_repeat_rate->append( result.blockSize, result.repeatRate);
     _scatter_repeat_rate->append(result.blockSize, result.repeatRate);
-    _x_repeat_rate->append(QString::number(result.blockSize), result.blockSize);
 
     if (result.repeatRate > _y_repeat_rate->max())
     {
         _y_repeat_rate->setRange(0.0, result.repeatRate);
     }
-    _y_repeat_rate->append(QString::number(result.repeatRate,'f', 2), result.repeatRate);
 
     return true;
 }
@@ -508,16 +522,13 @@ bool MainWindow::addPointRecoverTime(const ResultComput &result)
     };
 
     writeInfoLog(QString("Add data point (%1, %2) to chart Recovered Time").arg(QString::number(result.blockSize), QString::number(result.recoveredTime)));
-
     _spline_recover_time->append( result.blockSize, result.recoveredTime);
     _scatter_recover_time->append(result.blockSize, result.recoveredTime);
-    _x_recover_time->append(QString::number(result.blockSize), result.blockSize);
 
     if (result.recoveredTime > _y_recover_time->max())
     {
         _y_recover_time->setRange(0.0, result.recoveredTime);
     }
-    _y_recover_time->append(QString::number(result.recoveredTime,'f', 2), result.recoveredTime);
 
     return true;
 }

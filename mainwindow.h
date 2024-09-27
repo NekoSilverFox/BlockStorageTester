@@ -12,8 +12,7 @@
 #include <QSplineSeries>
 #include <QScatterSeries>
 #include <QCategoryAxis>
-
-
+#include <QLogValueAxis>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -67,8 +66,8 @@ private:
     bool initChart(QChartView* chartView,
                    QChart* chart, QString chart_tital, QFont chart_tital_font,
                    QSplineSeries* spline, QScatterSeries* scatter,
-                   QCategoryAxis* x, QString x_tital,
-                   QCategoryAxis* y, QString y_tital);
+                   QLogValueAxis* x, QString x_tital,
+                   QValueAxis* y, QString y_tital);
     bool addPointSegTimeAndRepeateRate(const ResultComput& result);
     bool addPointRecoverTime(const ResultComput& result);
 
@@ -97,14 +96,14 @@ private:
     QChart*     _chart_recover_time;// 画布 - 恢复时间
     QChart*     _chart_repeat_rate; // 画布 - 哈希重复率
 
-    QCategoryAxis*  _x_seg_time;
-    QCategoryAxis*  _y_seg_time;
+    QLogValueAxis*  _x_seg_time;
+    QValueAxis*     _y_seg_time;
 
-    QCategoryAxis*  _x_recover_time;
-    QCategoryAxis*  _y_recover_time;
+    QLogValueAxis*  _x_recover_time;
+    QValueAxis*     _y_recover_time;
 
-    QCategoryAxis*  _x_repeat_rate;
-    QCategoryAxis*  _y_repeat_rate;
+    QLogValueAxis*  _x_repeat_rate;
+    QValueAxis*     _y_repeat_rate;
 
     QSplineSeries*  _spline_seg_time;       // 平滑曲线 - 分块时间
     QSplineSeries*  _spline_recover_time;   // 平滑曲线 - 恢复时间

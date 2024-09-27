@@ -470,6 +470,11 @@
                  <string notr="true">1024</string>
                 </property>
                </item>
+               <item>
+                <property name="text">
+                 <string notr="true">2024</string>
+                </property>
+               </item>
               </widget>
              </item>
              <item>

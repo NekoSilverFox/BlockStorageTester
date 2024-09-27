@@ -263,7 +263,7 @@ bool DatabaseService::deleteTable(const QString &tbName)
         return false;
     }
 
-    if (isTableExists(tbName))
+    if (!isTableExists(tbName))
     {
         return true;
     }

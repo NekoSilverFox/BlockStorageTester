@@ -26,6 +26,7 @@ public:
 
     /* 表相关操作 */
     bool createBlockInfoTable(const QString& tbName);
+    bool deleteTable(const QString& tbName);
     bool isTableExists(const QString& tbName);
     bool insertNewBlockInfoRow(const QString& tbName, const QByteArray& blockHash,
                                const QString& sourceFilePath, const int blockLoc, const int blockSize);
@@ -33,7 +34,6 @@ public:
     bool updateCounter(const QString& tbName, const QByteArray& blockHash, int count);
     int getTableRowCount(const QString& tbName);
     BlockInfo getBlockInfo(const QString& tbName, const QByteArray& blockHash);
-    bool clearDatabase();   // 清空数据库（删除所有的表,schema）
 
     /* getter 方法*/
     QString getHost();

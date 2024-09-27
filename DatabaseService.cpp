@@ -252,6 +252,41 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
 }
 
 /**
+ * @brief DatabaseService::deleteTable 删除当前连接的数据库中指定名称的表
+ * @param tbName 要删除的表名
+ * @return 是否成功删除
+ */
+bool DatabaseService::deleteTable(const QString &tbName)
+{
+    if (!isDatabaseOpen())
+    {
+        return false;
+    }
+
+    if (isTableExists(tbName))
+    {
+        return true;
+    }
+
+    // 构建 SQL 语句，删除指定的表
+    QString sql = QString("DROP TABLE IF EXISTS %1;").arg(tbName);
+    _last_sql = sql;
+    qDebug() << QString("Delete table `%1`").arg(tbName);
+    qDebug() << QString("↳ Run SQL: %1").arg(sql);
+
+    QSqlQuery q;
+    if (q.exec(sql))
+    {
+        _last_log = QString("Successfully deleted table `%1`").arg(tbName);
+        return true;
+    }
+
+    _last_log = QString("Failed to delete table `%1`: %2").arg(tbName, q.lastError().text());
+    return false;
+
+}
+
+/**
  * @brief DatabaseService::isTableExists 指定表名的表是否存在
  * @param tbName 表名
  * @return 如果表存在，返回 true；否则返回 false
@@ -498,83 +533,6 @@ BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray 
 
     return BlockInfo();  // 查询失败或没有找到匹配记录时返回 空对象
 }
-
-bool DatabaseService::clearDatabase()
-{
-    if (!isDatabaseOpen())
-    {
-        return false;
-    }
-
-    // SQL语句：删除 public schema 及其所有内容
-    QString dropSchemaSql = "DROP SCHEMA public CASCADE;";
-    QString createSchemaSql = "CREATE SCHEMA public;";
-    QString grantSchemaSql1 = "GRANT ALL ON SCHEMA public TO postgres;";
-    QString grantSchemaSql2 = "GRANT ALL ON SCHEMA public TO public;";
-
-    _last_sql = dropSchemaSql;
-
-    // 执行删除 public schema 的操作
-    QSqlQuery q;
-    if (!q.exec(dropSchemaSql))
-    {
-        _last_log = QString("Failed to drop schema `public`: %1").arg(q.lastError().text());
-#if !QT_NO_DEBUG
-        qDebug() << _last_log;
-#endif
-        return false;
-    }
-
-    // 重新创建 public schema
-    _last_sql = createSchemaSql;
-#if !QT_NO_DEBUG
-    qDebug() << _last_log;
-#endif
-    if (!q.exec(createSchemaSql))
-    {
-        _last_log = QString("Failed to create schema `public`: %1").arg(q.lastError().text());
-#if !QT_NO_DEBUG
-        qDebug() << _last_log;
-#endif
-        return false;
-    }
-
-    // 赋予 postgres 用户权限
-    _last_sql = grantSchemaSql1;
-#if !QT_NO_DEBUG
-    qDebug() << _last_log;
-#endif
-    if (!q.exec(grantSchemaSql1))
-    {
-        _last_log = QString("Failed to grant permissions to postgres: %1").arg(q.lastError().text());
-#if !QT_NO_DEBUG
-        qDebug() << _last_log;
-#endif
-        return false;
-    }
-
-    // 赋予 public 用户权限
-    _last_sql = grantSchemaSql2;
-#if !QT_NO_DEBUG
-    qDebug() << _last_log;
-#endif
-    if (!q.exec(grantSchemaSql2))
-    {
-        _last_log = QString("Failed to grant permissions to public: %1").arg(q.lastError().text());
-#if !QT_NO_DEBUG
-        qDebug() << _last_log;
-#endif
-        return false;
-    }
-
-    // 所有操作成功
-    _last_log = "Successfully cleared the database (all tables dropped)";
-#if !QT_NO_DEBUG
-    qDebug() << _last_log;
-#endif
-    return true;
-}
-
 
 QString DatabaseService::lastSQL()
 {

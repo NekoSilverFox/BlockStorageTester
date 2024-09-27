@@ -25,9 +25,12 @@ public:
     void finishAllJob(const bool drop_db);  // 同时也是最后的数据库断开连接和删除操作，发出最终的退出信号
 
     /* 计算任务 */
-    void runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
-    void runTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
-
+    void runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path,
+                                      const HashAlg alg, const size_t block_size);
+    void runTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path,
+                                 const HashAlg alg, const size_t block_size);
+    void runTestBenchmark(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+                          const HashAlg alg, const QList<size_t>& block_size_list);
 
 signals:
     /* 设置UI */
@@ -83,9 +86,15 @@ signals:
     void signalRunTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
     bool signalTestRecoverPerformanceFinished(const bool is_succ);        // ↑ 任务完成信号
 
+    void signalRunTestBenchmark(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+                                const HashAlg alg, const QList<size_t>& block_size_list);
+
+
     /* 发送计算结果 */
     void signalCurSegmentationResult(const ResultComput& seg_result);
     void signalCurRecoverResult(const ResultComput& recover_result);
+    void signalAddPointSegTimeAndRepeateRate(const ResultComput& seg_result);  // 让 ui 添加分割时间和哈希重复率到图表
+    void signalAddPointRecoverTime(const ResultComput& seg_result); // 让 ui 添加 恢复时间到图表
 
 private:
     QString getCurrentThreadID() const;

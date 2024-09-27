@@ -476,8 +476,8 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
         qDebug() << _last_log << "\nRecover data: " << curSourceFile->readFrom(cur_block_info.location, cur_block_info.size);
 #endif
     }
-    // 结果发送到表
 
+    // 结果发送到表
     emit signalCurRecoverResult(_cur_result_comput);
     recoverFile.close();
     delete curSourceFile;
@@ -495,6 +495,58 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     emit signalSetActivityWidget(true);
     emit signalSetLbRecoverStyle(ThemeStyle::LABLE_GREEN);
     emit signalTestRecoverPerformanceFinished(true);
+}
+
+
+/**
+ * @brief AsyncComputeModule::runTestBenchmark 自动执行基准测试
+ * @param source_file_path 源文件路径
+ * @param block_file_path 存储哈希块的文件
+ * @param recover_file_path 要恢复至的文件的文件名
+ * @param alg 哈希算法
+ * @param block_size_list
+ */
+void AsyncComputeModule::runTestBenchmark(const QString &source_file_path, const QString &block_file_path, const QString &recover_file_path,
+                                          const HashAlg alg, const QList<size_t> &block_size_list)
+{
+    emit signalWriteInfoLog(QString("[Thread %1] Start to run Benchmark Test").arg(getCurrentThreadID()));
+
+    /* 为了避免意外操作，暂时禁用按钮 */
+    emit signalSetActivityWidget(false);
+
+    /* 数据库无连接 */
+    if (!_dbs->isDatabaseOpen())
+    {
+        _last_log = QString("[Thread %1] Database do not connected, test exit").arg(getCurrentThreadID());
+        emit signalWriteErrorLog(_last_log);
+        emit signalWarnBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        emit signalTestRecoverPerformanceFinished(false);
+        return;
+    }
+
+    QString tb;
+    for (size_t block_size : block_size_list)
+    {
+        /* 保证测试准确，每次都先删除指定表  */
+        tb = getTableName(block_size, alg);
+        if (_dbs->isTableExists(tb))
+        {
+            _dbs->deleteTable(tb);
+        }
+
+        emit signalWriteInfoLog(QString("[Thread %1] Benchmark Test with Block Size %2 Bytes, Hash-Alg %3").arg(getCurrentThreadID(), QString::number(block_size), Hash::getHashName(alg)));
+
+        runTestSegmentationProfmance(source_file_path, block_file_path, alg, block_size);
+        emit signalAddPointSegTimeAndRepeateRate(_cur_result_comput);
+
+        runTestRecoverProfmance(recover_file_path, block_file_path, alg, block_size);
+        emit signalAddPointRecoverTime(_cur_result_comput);
+    }
+
+    emit signalWriteSuccLog(QString("[Thread %1] Benchmark Test done").arg(getCurrentThreadID()));
+    QThread::sleep(2);///TODO
 }
 
 QString AsyncComputeModule::getCurrentThreadID() const

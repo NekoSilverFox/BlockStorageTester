@@ -34,6 +34,7 @@ public:
     /* 准备数据并且发送信号执行测试 */
     void startTestSegmentationPerformance();    // 测试分块分割（segmentation）写入性能
     void startTestRecoverPerformance();         // 测试分块恢复性能
+    void startTestBenchmark();                  // 开始基准测试
 
     /* 结果展示 & 保存 */
     void addSegmentationResult(const ResultComput& seg_result);
@@ -63,6 +64,8 @@ private:
                    QSplineSeries* spline, QScatterSeries* scatter,
                    QValueAxis* x, QString x_tital,
                    QValueAxis* y, QString y_tital);
+    bool addPointSegTimeAndRepeateRate(const ResultComput& result);
+    bool addPointRecoverTime(const ResultComput& result);
 
 private slots:
     void setActivityWidget(const bool activity);

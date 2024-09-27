@@ -39,7 +39,7 @@ public:
     void startTestRecoverPerformance();         // 测试分块恢复性能
 #endif
     void startSingleTest();                 // 开始单步测试
-    void startBenchmarkTest();                  // 开始基准测试
+    void startBenchmarkTest();              // 开始基准测试
 
     /* 结果展示 & 保存 */
     void addSegmentationResult(const ResultComput& seg_result);

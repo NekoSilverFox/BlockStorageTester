@@ -249,10 +249,22 @@ void MainWindow::asyncJobDbConnStateChanged(const bool is_conn)
 void MainWindow::initAllCharts()
 {
     writeInfoLog("Start init all charts");
-    /* 图表显示 */
-    delete _chart_seg_time      ;    // 画布 - 分块时间
-    delete _chart_recover_time  ;    // 画布 - 恢复时间
-    delete _chart_repeat_rate   ;    // 画布 - 哈希重复率
+
+    /* 图表显示（注意释放顺序） */
+    if (ui->cvSegTime->chart() != nullptr)
+    {
+        ui->cvSegTime->setChart(new QChart());   // 必须先置为空（解绑）才能 delete chart，否则会造成程序崩溃！！！
+    }
+    if (ui->cvRecoverTime->chart() != nullptr)
+    {
+        ui->cvRecoverTime->setChart(new QChart());
+    }
+    if (ui->cvRepeatRate->chart() != nullptr)
+    {
+        ui->cvRepeatRate->setChart(new QChart());
+    }
+
+    delete _font_tital    ;     // 字体 - 标题
 
     delete _x_seg_time;
     delete _x_recover_time;
@@ -269,7 +281,9 @@ void MainWindow::initAllCharts()
     delete _scatter_recover_time;    // 数据点 - 恢复时间
     delete _scatter_repeat_rate ;    // 数据点 - 哈希重复率
 
-    delete _font_tital    ;     // 字体 - 标题
+    delete _chart_seg_time      ;    // 画布 - 分块时间
+    delete _chart_recover_time  ;    // 画布 - 恢复时间
+    delete _chart_repeat_rate   ;    // 画布 - 哈希重复率
 
     _chart_seg_time      = new QChart();
     _chart_recover_time  = new QChart();
@@ -396,6 +410,10 @@ bool MainWindow::initChart(QChartView* chartView,
     scatter->attachAxis(x);
     scatter->attachAxis(y);
 
+    if (ui->cvSegTime->chart() != nullptr)
+    {
+        chartView->setChart(new QChart());  // 作用是与之前的QChart解绑
+    }
     chartView->setChart(chart);
     chartView->setRenderHint(QPainter::Antialiasing);  // 抗锯齿
 

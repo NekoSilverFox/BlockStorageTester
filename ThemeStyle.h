@@ -11,7 +11,7 @@ namespace ThemeStyle
     const QString LABLE_BLUE    = "color: blue;";
     const QString LCD_NONE      = "NONE";
 
-    const unsigned int SCATTER_MARK_SIZE    =   5;
+    const unsigned int SCATTER_MARK_SIZE    =   10;
     const unsigned int FONT_TITLE_SIZE      =   16;  // 绘图区标题字体大小
     const bool         FONT_TITLE_BOLD      =   false;// 标题字体是否加粗
 }

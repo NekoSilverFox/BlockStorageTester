@@ -13,7 +13,6 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
-#include <QCategoryAxis>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -32,12 +31,21 @@ MainWindow::MainWindow(QWidget *parent)
     _chart_seg_time       = nullptr;
     _chart_recover_time   = nullptr;
     _chart_repeat_rate    = nullptr;
+
+    _x_seg_time           = nullptr;
+    _x_recover_time       = nullptr;
+    _x_repeat_rate        = nullptr;
+    _y_seg_time           = nullptr;
+    _y_recover_time       = nullptr;
+    _y_repeat_rate        = nullptr;
+
     _spline_seg_time      = nullptr;
     _spline_recover_time  = nullptr;
     _spline_repeat_rate   = nullptr;
     _scatter_seg_time     = nullptr;
     _scatter_recover_time = nullptr;
     _scatter_repeat_rate  = nullptr;
+
     _font_tital           = nullptr;
 
     setWindowIcon(QIcon(":/icons/logo.png"));
@@ -109,8 +117,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnSelectBlockFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
     connect(ui->btnSelectRecoverFile, &QPushButton::clicked, this, &MainWindow::selectRecoverFile);
 
-    connect(ui->btnRunSingleTest, &QPushButton::clicked, this, &MainWindow::startTestSegmentationPerformance);
-    connect(ui->btnRunBenchmarkTest, &QPushButton::clicked, this, &MainWindow::startTestBenchmark);
+    connect(ui->btnRunSingleTest, &QPushButton::clicked, this, &MainWindow::startSingleTest);
+    connect(ui->btnRunBenchmarkTest, &QPushButton::clicked, this, &MainWindow::startBenchmarkTest);
 
 
     /* 接收/处理子线程任务发出的信号 */
@@ -124,14 +132,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_asyncJob, &AsyncComputeModule::signalDisconnDb, _asyncJob, &AsyncComputeModule::disconnectCurrentDatabase);
     connect(_asyncJob, &AsyncComputeModule::signalDbConnState, this, &MainWindow::asyncJobDbConnStateChanged);
     connect(_asyncJob, &AsyncComputeModule::signalDropCurDb, _asyncJob, &AsyncComputeModule::dropCurrentDatabase);
-
+#if 0
     connect(_asyncJob, &AsyncComputeModule::signalRunTestSegmentationPerformance, _asyncJob, &AsyncComputeModule::runTestSegmentationProfmance);
     connect(_asyncJob, &AsyncComputeModule::signalTestSegmentationPerformanceFinished,
             this, [=](const bool is_succ){ if (is_succ) startTestRecoverPerformance(); }); // 分块成功结束后可以开始自动测试恢复性能
     connect(_asyncJob, &AsyncComputeModule::signalRunTestRecoverProfmance, _asyncJob, &AsyncComputeModule::runTestRecoverProfmance);
+#endif
+    connect(_asyncJob, &AsyncComputeModule::signalRunSingleTest, _asyncJob, &AsyncComputeModule::runSingleTest);
+    connect(_asyncJob, &AsyncComputeModule::signalRunBenchmarkTest, _asyncJob, &AsyncComputeModule::runBenchmarkTest);
     connect(_asyncJob, &AsyncComputeModule::signalFinishAllJob, _asyncJob, &AsyncComputeModule::finishAllJob);
-
-    connect(_asyncJob, &AsyncComputeModule::signalRunTestBenchmark, _asyncJob, &AsyncComputeModule::runTestBenchmark);
 
 
     connect(_asyncJob, &AsyncComputeModule::signalWriteInfoLog, this, &MainWindow::writeInfoLog);
@@ -245,6 +254,13 @@ void MainWindow::initAllCharts()
     delete _chart_recover_time  ;    // 画布 - 恢复时间
     delete _chart_repeat_rate   ;    // 画布 - 哈希重复率
 
+    delete _x_seg_time;
+    delete _x_recover_time;
+    delete _x_repeat_rate;
+    delete _y_seg_time;
+    delete _y_recover_time;
+    delete _y_repeat_rate;
+
     delete _spline_seg_time     ;    // 平滑曲线 - 分块时间
     delete _spline_recover_time ;    // 平滑曲线 - 恢复时间
     delete _spline_repeat_rate  ;    // 平滑曲线 - 哈希重复率
@@ -258,6 +274,14 @@ void MainWindow::initAllCharts()
     _chart_seg_time      = new QChart();
     _chart_recover_time  = new QChart();
     _chart_repeat_rate   = new QChart();
+
+    _x_seg_time          = new QCategoryAxis();
+    _x_recover_time      = new QCategoryAxis();
+    _x_repeat_rate       = new QCategoryAxis();
+
+    _y_seg_time          = new QCategoryAxis();
+    _y_recover_time      = new QCategoryAxis();
+    _y_repeat_rate       = new QCategoryAxis();
 
     _spline_seg_time     = new QSplineSeries();
     _spline_recover_time = new QSplineSeries();
@@ -277,18 +301,18 @@ void MainWindow::initAllCharts()
      */
     initChart(ui->cvSegTime, _chart_seg_time, "Segmentation time versus block size", *_font_tital,
               _spline_seg_time, _scatter_seg_time,
-              new QValueAxis(_chart_seg_time), "Block size (Byte)",
-              new QValueAxis(_chart_seg_time), "Time (s)");
+              _x_seg_time, "Block size (Byte)",
+              _y_seg_time, "Time (s)");
 
     initChart(ui->cvRecoverTime, _chart_recover_time, "Recover time versus block size", *_font_tital,
               _spline_recover_time, _scatter_recover_time,
-              new QValueAxis(_chart_recover_time), "Block size (Byte)",
-              new QValueAxis(_chart_recover_time), "Time (s)");
+              _x_recover_time, "Block size (Byte)",
+              _y_recover_time, "Time (s)");
 
     initChart(ui->cvRepeatRate, _chart_repeat_rate, "Percentage of repeats versus block size", *_font_tital,
               _spline_repeat_rate, _scatter_repeat_rate,
-              new QValueAxis(_chart_repeat_rate), "Block size (Byte)",
-              new QValueAxis(_chart_repeat_rate), "Percent (%)");
+              _x_repeat_rate, "Block size (Byte)",
+              _y_repeat_rate, "Percent (%)");
 
     writeSuccLog("Successed init all charts");
 }
@@ -309,8 +333,8 @@ void MainWindow::initAllCharts()
 bool MainWindow::initChart(QChartView* chartView,
               QChart* chart, QString chart_tital, QFont chart_tital_font,
               QSplineSeries* spline, QScatterSeries* scatter,
-              QValueAxis* x, QString x_tital,
-              QValueAxis* y, QString y_tital)
+              QCategoryAxis* x, QString x_tital,
+              QCategoryAxis* y, QString y_tital)
 {
     writeInfoLog(QString("Start init chart %1").arg(chart_tital));
 
@@ -352,10 +376,14 @@ bool MainWindow::initChart(QChartView* chartView,
 
     chart->addAxis(x, Qt::AlignBottom);  // 【！！！注意：需要立刻放入chart！否则可能会出错！！！】
     x->setTitleText(x_tital);
+    x->setRange(0, 1024);
+    // x->setTickInterval(64);
+    x->append("0", 0);
 
     chart->addAxis(y, Qt::AlignLeft);
     y->setTitleText(y_tital);
     y->setRange(0, 1);
+    y->append("0", 0);
 
     chart->addSeries(spline);
     spline->setColor(Qt::blue);
@@ -364,6 +392,7 @@ bool MainWindow::initChart(QChartView* chartView,
 
     chart->addSeries(scatter);
     scatter->setColor(Qt::red);  // 设置曲线颜色
+    scatter->setMarkerSize(ThemeStyle::SCATTER_MARK_SIZE);
     scatter->attachAxis(x);
     scatter->attachAxis(y);
 
@@ -413,12 +442,29 @@ bool MainWindow::addPointSegTimeAndRepeateRate(const ResultComput &result)
     }
 
     writeInfoLog(QString("Add data point (%1, %2) to chart Seg time").arg(QString::number(result.blockSize), QString::number(result.segTime)));
-    _spline_seg_time->append(result.blockSize, result.segTime);
+    _spline_seg_time->append( result.blockSize, result.segTime);
     _scatter_seg_time->append(result.blockSize, result.segTime);
+    _x_seg_time->append(QString::number(result.blockSize), result.blockSize);
+
+    if (result.segTime > _y_seg_time->max())
+    {
+        _y_seg_time->setRange(0.0, result.segTime);
+    }
+    _y_seg_time->append(QString::number(result.segTime,'f', 2), result.segTime);
+
 
     writeInfoLog(QString("Add data point (%1, %2) to chart Repeate rate").arg(QString::number(result.blockSize), QString::number(result.repeatRate)));
-    _spline_repeat_rate->append(result.blockSize, result.repeatRate);
+    _spline_repeat_rate->append( result.blockSize, result.repeatRate);
     _scatter_repeat_rate->append(result.blockSize, result.repeatRate);
+    _x_repeat_rate->append(QString::number(result.blockSize), result.blockSize);
+
+    if (result.repeatRate > _y_repeat_rate->max())
+    {
+        _y_repeat_rate->setRange(0.0, result.repeatRate);
+    }
+    _y_repeat_rate->append(QString::number(result.repeatRate,'f', 2), result.repeatRate);
+
+    return true;
 }
 
 /**
@@ -445,18 +491,17 @@ bool MainWindow::addPointRecoverTime(const ResultComput &result)
 
     writeInfoLog(QString("Add data point (%1, %2) to chart Recovered Time").arg(QString::number(result.blockSize), QString::number(result.recoveredTime)));
 
-    // 使用匿名对象创建的 X 轴，可以通过 chart->axisX() 获取它
-    QValueAxis* xAxis = qobject_cast<QValueAxis*>(_chart_recover_time->axisX());
-    xAxis->setTickCount(xAxis->tickCount() + 1);
-    xAxis->setRange(xAxis->min(), result.blockSize);
-
-    QValueAxis* yAxis = qobject_cast<QValueAxis*>(_chart_recover_time->axisY());
-    if (yAxis && result.recoveredTime > yAxis->max()) {
-        yAxis->setRange(xAxis->min(), result.recoveredTime);
-    }
-
-    _spline_recover_time->append(result.blockSize, result.recoveredTime);
+    _spline_recover_time->append( result.blockSize, result.recoveredTime);
     _scatter_recover_time->append(result.blockSize, result.recoveredTime);
+    _x_recover_time->append(QString::number(result.blockSize), result.blockSize);
+
+    if (result.recoveredTime > _y_recover_time->max())
+    {
+        _y_recover_time->setRange(0.0, result.recoveredTime);
+    }
+    _y_recover_time->append(QString::number(result.recoveredTime,'f', 2), result.recoveredTime);
+
+    return true;
 }
 
 void MainWindow::writeInfoLog(const QString& msg)
@@ -631,6 +676,7 @@ void MainWindow::autoConnectionDBModule()
     emit _asyncJob->signalConnDb(host, port, driver, user, password, dbName);
 }
 
+#if 0
 /**
  * @brief MainWindow::startTestSegmentationPerformance 测试分块分割性能（会发送信号让子线程实际的去执行计算任务）
  */
@@ -680,24 +726,78 @@ void MainWindow::startTestRecoverPerformance()
     /* 发送信号，让子线程去执行计算任务 */
     emit _asyncJob->signalRunTestRecoverProfmance(ui->leRecoverFile->text(), ui->leBlockFile->text(), alg, block_size);
 }
+#endif
 
 /**
- * @brief MainWindow::startTestBenchmark 自动基准测试
+ * @brief MainWindow::startSingleTest 执行单步测试（分块性能 + 恢复性能）
  */
-void MainWindow::startTestBenchmark()
+void MainWindow::startSingleTest()
+{
+    if (ui->leSourceFile->text().isEmpty())
+    {
+        writeErrorLog("Source file path is empty");
+        QMessageBox::warning(this, "Warning", "Source file path is empty!");
+        setActivityWidget(true);
+        return;
+    }
+    if (ui->leBlockFile->text().isEmpty())
+    {
+        writeErrorLog("Block file path is empty");
+        QMessageBox::warning(this, "Warning", "Block file path is empty!");
+        setActivityWidget(true);
+        return;
+    }
+    if (ui->leRecoverFile->text().isEmpty())
+    {
+        writeErrorLog("Recover file path is empty");
+        QMessageBox::warning(this, "Warning", "Recover file path is empty!");
+        setActivityWidget(true);
+        return;
+    }
+
+    /* 获取读取的信息（块大小和算法） */
+    const size_t block_size = ui->cbBlockSize->currentText().toInt();  // 每个块的大小(Byte)
+    const HashAlg alg = HashAlg(ui->cbHashAlg->currentIndex());
+
+    writeInfoLog(QString("Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
+
+    emit _asyncJob->signalRunSingleTest(ui->leSourceFile->text(),
+                                        ui->leBlockFile->text(),
+                                        ui->leRecoverFile->text(),
+                                        alg, block_size);
+}
+
+/**
+ * @brief MainWindow::startBenchmarkTest 自动基准测试
+ */
+void MainWindow::startBenchmarkTest()
 {
     setActivityWidget(false);
     writeInfoLog("Start Benchmark Test");
 
-    initAllCharts();
-
-    if (ui->leSourceFile->text().isEmpty() || ui->leBlockFile->text().isEmpty() || ui->leRecoverFile->text().isEmpty())
+    if (ui->leSourceFile->text().isEmpty())
     {
-        writeErrorLog("Source file or Block file or Recover file path is empty");
-        QMessageBox::warning(this, "Warning", "Source file or Block file or Recover file path is empty!");
+        writeErrorLog("Source file path is empty");
+        QMessageBox::warning(this, "Warning", "Source file path is empty!");
         setActivityWidget(true);
         return;
     }
+    if (ui->leBlockFile->text().isEmpty())
+    {
+        writeErrorLog("Block file path is empty");
+        QMessageBox::warning(this, "Warning", "Block file path is empty!");
+        setActivityWidget(true);
+        return;
+    }
+    if (ui->leRecoverFile->text().isEmpty())
+    {
+        writeErrorLog("Recover file path is empty");
+        QMessageBox::warning(this, "Warning", "Recover file path is empty!");
+        setActivityWidget(true);
+        return;
+    }
+
+    initAllCharts();
 
     const HashAlg alg = HashAlg(ui->cbBenchmarkAlg->currentIndex());
     QList<size_t> blockSizeList;  // 参与测试的所有块大小
@@ -707,7 +807,9 @@ void MainWindow::startTestBenchmark()
         // qDebug() << ui->cbBlockSize->itemText(i).toUInt();
     }
 
-    emit _asyncJob->signalRunTestBenchmark(ui->leSourceFile->text(), ui->leBlockFile->text(), ui->leRecoverFile->text(),
+    emit _asyncJob->signalRunBenchmarkTest(ui->leSourceFile->text(),
+                                           ui->leBlockFile->text(),
+                                           ui->leRecoverFile->text(),
                                            alg, blockSizeList);
 }
 
@@ -886,6 +988,13 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
     delete _asyncJob;
     delete _threadAsyncJob;
+
+    delete _x_seg_time;
+    delete _x_recover_time;
+    delete _x_repeat_rate;
+    delete _y_seg_time;
+    delete _y_recover_time;
+    delete _y_repeat_rate;
 
     delete _spline_seg_time     ;    // 平滑曲线 - 分块时间
     delete _spline_recover_time ;    // 平滑曲线 - 恢复时间

@@ -29,7 +29,9 @@ public:
                                       const HashAlg alg, const size_t block_size);
     void runTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path,
                                  const HashAlg alg, const size_t block_size);
-    void runTestBenchmark(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+    void runSingleTest(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+                       const HashAlg alg, const size_t block_size);
+    void runBenchmarkTest(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
                           const HashAlg alg, const QList<size_t>& block_size_list);
 
 signals:
@@ -86,7 +88,9 @@ signals:
     void signalRunTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
     bool signalTestRecoverPerformanceFinished(const bool is_succ);        // ↑ 任务完成信号
 
-    void signalRunTestBenchmark(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+    void signalRunSingleTest(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+                             const HashAlg alg, const size_t block_size);
+    void signalRunBenchmarkTest(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
                                 const HashAlg alg, const QList<size_t>& block_size_list);
 
 

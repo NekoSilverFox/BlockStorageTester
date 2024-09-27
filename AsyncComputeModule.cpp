@@ -497,16 +497,35 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     emit signalTestRecoverPerformanceFinished(true);
 }
 
+/**
+ * @brief AsyncComputeModule::runTestSingal 执行单步测试（分块性能 + 恢复性能）
+ * @param source_file_path 源文件路径
+ * @param block_file_path 存储哈希块的文件
+ * @param recover_file_path 要恢复至的文件的文件名
+ * @param alg 哈希算法
+ * @param block_size 块大小
+ */
+void AsyncComputeModule::runSingleTest(const QString &source_file_path, const QString &block_file_path,
+                                       const QString &recover_file_path, const HashAlg alg, const size_t block_size)
+{
+    emit signalWriteInfoLog(QString("[Thread %1] Start to run Singal Test").arg(getCurrentThreadID()));
+
+    runTestSegmentationProfmance(source_file_path, block_file_path, alg, block_size);
+    runTestRecoverProfmance(recover_file_path, block_file_path, alg, block_size);
+
+    emit signalWriteSuccLog(QString("[Thread %1] Singal Test done").arg(getCurrentThreadID()));
+}
+
 
 /**
- * @brief AsyncComputeModule::runTestBenchmark 自动执行基准测试
+ * @brief AsyncComputeModule::runBenchmarkTest 自动执行基准测试
  * @param source_file_path 源文件路径
  * @param block_file_path 存储哈希块的文件
  * @param recover_file_path 要恢复至的文件的文件名
  * @param alg 哈希算法
  * @param block_size_list
  */
-void AsyncComputeModule::runTestBenchmark(const QString &source_file_path, const QString &block_file_path, const QString &recover_file_path,
+void AsyncComputeModule::runBenchmarkTest(const QString &source_file_path, const QString &block_file_path, const QString &recover_file_path,
                                           const HashAlg alg, const QList<size_t> &block_size_list)
 {
     emit signalWriteInfoLog(QString("[Thread %1] Start to run Benchmark Test").arg(getCurrentThreadID()));
@@ -546,7 +565,6 @@ void AsyncComputeModule::runTestBenchmark(const QString &source_file_path, const
     }
 
     emit signalWriteSuccLog(QString("[Thread %1] Benchmark Test done").arg(getCurrentThreadID()));
-    QThread::sleep(2);///TODO
 }
 
 QString AsyncComputeModule::getCurrentThreadID() const

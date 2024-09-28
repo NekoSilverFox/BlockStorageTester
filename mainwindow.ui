@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1441</width>
+    <width>1503</width>
     <height>872</height>
    </rect>
   </property>
@@ -1324,10 +1324,21 @@
         </widget>
        </item>
        <item>
-        <widget class="QChartView" name="cvSegTime"/>
+        <widget class="QChartView" name="cvSegAndRecoverTime"/>
        </item>
        <item>
-        <widget class="QChartView" name="cvRecoverTime"/>
+        <widget class="QChartView" name="cvSegTime">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QChartView" name="cvRecoverTime">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QChartView" name="cvRepeatRate"/>
@@ -1342,7 +1353,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1441</width>
+     <width>1503</width>
      <height>24</height>
     </rect>
    </property>

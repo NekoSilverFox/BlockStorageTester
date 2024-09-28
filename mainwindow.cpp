@@ -27,25 +27,37 @@ MainWindow::MainWindow(QWidget *parent)
 
     is_db_conn = false;
     _listResultComput = new QList<ResultComput>();
+    ui->cvSegTime->setVisible(false);
+    ui->cvRecoverTime->setVisible(false);
 
     /* 图表显示 */
-    _chart_seg_time       = nullptr;
-    _chart_recover_time   = nullptr;
-    _chart_repeat_rate    = nullptr;
-
+#if 0
     _x_seg_time           = nullptr;
-    _x_recover_time       = nullptr;
-    _x_repeat_rate        = nullptr;
     _y_seg_time           = nullptr;
-    _y_recover_time       = nullptr;
-    _y_repeat_rate        = nullptr;
-
     _spline_seg_time      = nullptr;
-    _spline_recover_time  = nullptr;
-    _spline_repeat_rate   = nullptr;
     _scatter_seg_time     = nullptr;
+    _chart_seg_time       = nullptr;
+
+    _x_recover_time       = nullptr;
+    _y_recover_time       = nullptr;
+    _spline_recover_time  = nullptr;
     _scatter_recover_time = nullptr;
+    _chart_recover_time   = nullptr;
+#endif
+
+    _x_seg_recover_time         = nullptr;
+    _y_seg_recover_time         = nullptr;
+    _spline_seg_time            = nullptr;
+    _scatter_seg_time           = nullptr;
+    _spline_recover_time        = nullptr;
+    _scatter_recover_time       = nullptr;
+    _chart_seg_recover_time     = nullptr;
+
+    _x_repeat_rate        = nullptr;
+    _y_repeat_rate        = nullptr;
+    _spline_repeat_rate   = nullptr;
     _scatter_repeat_rate  = nullptr;
+    _chart_repeat_rate    = nullptr;
 
     _font_tital           = nullptr;
 
@@ -72,22 +84,22 @@ MainWindow::MainWindow(QWidget *parent)
 
     /* 运算结果 */
     QStringList res_list_header;
-    res_list_header << "File" << "Hash alg" << "Block size"  << "Total blocks"
-                    << "Hash records" << "Repeat records" << "Repeat rate" << "Seg time"
-                    << "Recovered blocks" << "Recovered rate" << "Recover time";
+    res_list_header << "File\npath" << "Hash alg" << "Block\nsize"  << "Total\nblocks"
+                    << "Hash\nrecords" << "Repeat\nrecords" << "Repeat\nrate" << "Seg time"
+                    << "Recovered\nblocks" << "Recovered\nrate" << "Recover\ntime";
     ui->tbwResult->setColumnCount(res_list_header.size());
     ui->tbwResult->setHorizontalHeaderLabels(res_list_header);
     ui->tbwResult->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(7, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(8, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(9, QHeaderView::ResizeToContents);
-    ui->tbwResult->horizontalHeader()->setSectionResizeMode(10, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(7, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(8, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(9, QHeaderView::ResizeToContents);
+    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(10, QHeaderView::ResizeToContents);
 
     /* 状态栏显示 */
     QLabel* lbRuningJobInfo = new QLabel(this);
@@ -122,7 +134,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->btnRunSingleTest, &QPushButton::clicked, this, &MainWindow::startSingleTest);
     connect(ui->btnRunBenchmarkTest, &QPushButton::clicked, this, &MainWindow::startBenchmarkTest);
-
 
     /* 接收/处理子线程任务发出的信号 */
     _threadAsyncJob = new QThread(this);
@@ -254,6 +265,7 @@ void MainWindow::initAllCharts()
     writeInfoLog("Start init all charts");
 
     /* 图表显示（注意释放顺序） */
+#if 0
     if (ui->cvSegTime->chart() != nullptr)
     {
         ui->cvSegTime->setChart(new QChart());   // 必须先置为空（解绑）才能 delete chart，否则会造成程序崩溃！！！
@@ -262,6 +274,11 @@ void MainWindow::initAllCharts()
     {
         ui->cvRecoverTime->setChart(new QChart());
     }
+#endif
+    if (ui->cvSegAndRecoverTime->chart() != nullptr)
+    {
+        ui->cvSegAndRecoverTime->setChart(new QChart());
+    }
     if (ui->cvRepeatRate->chart() != nullptr)
     {
         ui->cvRepeatRate->setChart(new QChart());
@@ -269,44 +286,61 @@ void MainWindow::initAllCharts()
 
     delete _font_tital    ;     // 字体 - 标题
 
+#if 0
     delete _x_seg_time;
-    delete _x_recover_time;
-    delete _x_repeat_rate;
     delete _y_seg_time;
-    delete _y_recover_time;
-    delete _y_repeat_rate;
-
     delete _spline_seg_time     ;    // 平滑曲线 - 分块时间
-    delete _spline_recover_time ;    // 平滑曲线 - 恢复时间
-    delete _spline_repeat_rate  ;    // 平滑曲线 - 哈希重复率
-
     delete _scatter_seg_time    ;    // 数据点 - 分块时间
-    delete _scatter_recover_time;    // 数据点 - 恢复时间
-    delete _scatter_repeat_rate ;    // 数据点 - 哈希重复率
-
     delete _chart_seg_time      ;    // 画布 - 分块时间
+
+    delete _x_recover_time;
+    delete _y_recover_time;
+    delete _spline_recover_time ;    // 平滑曲线 - 恢复时间
+    delete _scatter_recover_time;    // 数据点 - 恢复时间
     delete _chart_recover_time  ;    // 画布 - 恢复时间
+#endif
+
+    delete _x_seg_recover_time         ;
+    delete _y_seg_recover_time         ;
+    delete _spline_seg_time            ;
+    delete _scatter_seg_time           ;
+    delete _spline_recover_time        ;
+    delete _scatter_recover_time       ;
+    delete _chart_seg_recover_time     ;
+
+    delete _x_repeat_rate       ;
+    delete _y_repeat_rate       ;
+    delete _spline_repeat_rate  ;    // 平滑曲线 - 哈希重复率
+    delete _scatter_repeat_rate ;    // 数据点 - 哈希重复率
     delete _chart_repeat_rate   ;    // 画布 - 哈希重复率
 
-    _chart_seg_time      = new QChart();
-    _chart_recover_time  = new QChart();
-    _chart_repeat_rate   = new QChart();
-
+#if 0
     _x_seg_time          = new QLogValueAxis();
-    _x_recover_time      = new QLogValueAxis();
-    _x_repeat_rate       = new QLogValueAxis();
-
     _y_seg_time          = new QValueAxis();
-    _y_recover_time      = new QValueAxis();
-    _y_repeat_rate       = new QValueAxis();
-
     _spline_seg_time     = new QSplineSeries();
-    _spline_recover_time = new QSplineSeries();
-    _spline_repeat_rate  = new QSplineSeries();
-
     _scatter_seg_time    = new QScatterSeries();
+    _chart_seg_time      = new QChart();
+
+    _x_recover_time      = new QLogValueAxis();
+    _y_recover_time      = new QValueAxis();
+    _spline_recover_time = new QSplineSeries();
     _scatter_recover_time= new QScatterSeries();
+    _chart_recover_time  = new QChart();
+#endif
+
+    _x_seg_recover_time         = new QLogValueAxis();
+    _y_seg_recover_time         = new QValueAxis();
+    _spline_seg_time            = new QSplineSeries();
+    _scatter_seg_time           = new QScatterSeries();
+    _spline_recover_time        = new QSplineSeries();
+    _scatter_recover_time       = new QScatterSeries();
+    _chart_seg_recover_time     = new QChart();
+
+    _x_repeat_rate       = new QLogValueAxis();
+    _y_repeat_rate       = new QValueAxis();
+    _spline_repeat_rate  = new QSplineSeries();
     _scatter_repeat_rate = new QScatterSeries();
+    _chart_repeat_rate   = new QChart();
 
     /* 创建字体并设置字体大小 */
     _font_tital          = new QFont();
@@ -316,6 +350,7 @@ void MainWindow::initAllCharts()
     /* 因为一个 QValueAxis 只能绑定一个 Chart（否则会出错），所以这里使用匿名对象的方式,
      * QCategoryAxis 可以为每个 X 轴的值指定标签，并且它会自动为每个标签绘制对应的轴线（网格线）。
      */
+#if 0
     initChart(ui->cvSegTime, _chart_seg_time, "Segmentation time versus block size", *_font_tital,
               _spline_seg_time, _scatter_seg_time,
               _x_seg_time, "Block size (Byte)",
@@ -325,8 +360,23 @@ void MainWindow::initAllCharts()
               _spline_recover_time, _scatter_recover_time,
               _x_recover_time, "Block size (Byte)",
               _y_recover_time, "Time (s)");
+#endif
 
-    initChart(ui->cvRepeatRate, _chart_repeat_rate, "Percentage of repeats versus block size", *_font_tital,
+    initChart(ui->cvSegAndRecoverTime, _chart_seg_recover_time,
+              "Segmentation and Recover time versus block size",
+              *_font_tital, true,
+              QList<QSplineSeries*>() << _spline_seg_time << _spline_recover_time,
+              QList<QString>() << "" << "",
+              QList<QScatterSeries*>() << _scatter_seg_time << _scatter_recover_time,
+              QList<QString>() << "Segmentation time" << "Restoration time",
+              QList<Qt::GlobalColor>() << Qt::blue << Qt::green,
+              QList<Qt::GlobalColor>() << Qt::red  << Qt::darkYellow,
+              _x_seg_recover_time, "Block size (Byte)",
+              _y_seg_recover_time, "Time (s)");
+
+    initChart(ui->cvRepeatRate, _chart_repeat_rate,
+              "Percentage of repeats versus block size",
+              *_font_tital, false,
               _spline_repeat_rate, _scatter_repeat_rate,
               _x_repeat_rate, "Block size (Byte)",
               _y_repeat_rate, "Percent (%)");
@@ -347,11 +397,11 @@ void MainWindow::initAllCharts()
  * @param y Y轴
  * @param y_tital Y轴标题
  */
-bool MainWindow::initChart(QChartView* chartView,
-              QChart* chart, QString chart_tital, QFont chart_tital_font,
-              QSplineSeries* spline, QScatterSeries* scatter,
-              QLogValueAxis* x, QString x_tital,
-              QValueAxis* y, QString y_tital)
+bool MainWindow::initChart(QChartView* chartView, QChart* chart,
+                           QString chart_tital, QFont chart_tital_font, bool legend_visible,
+                           QSplineSeries* spline, QScatterSeries* scatter,
+                           QLogValueAxis* x, QString x_tital,
+                           QValueAxis* y, QString y_tital)
 {
     writeInfoLog(QString("Start init chart %1").arg(chart_tital));
 
@@ -388,7 +438,7 @@ bool MainWindow::initChart(QChartView* chartView,
 
     chart->setTitleFont(chart_tital_font);  // 应用字体设置到图表标题
     chart->setTitle(chart_tital);
-    chart->legend()->setVisible(false);  // 显示图例
+    chart->legend()->setVisible(legend_visible);  // 显示图例
     chart->setMargins(QMargins(0, 0, 0, 0));  // 移除图像周围的留白区域
 
     chart->addAxis(x, Qt::AlignBottom);  // 【！！！注意：需要立刻放入chart！否则可能会出错！！！】
@@ -400,7 +450,7 @@ bool MainWindow::initChart(QChartView* chartView,
 
     chart->addAxis(y, Qt::AlignLeft);
     y->setTitleText(y_tital);
-    y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
+    // y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
     y->setTickCount(10);
     y->setLabelFormat("%.2f");  // 设置显示格式，保留两位小数
     y->setRange(0.0, 1.0);
@@ -419,17 +469,17 @@ bool MainWindow::initChart(QChartView* chartView,
     scatter->attachAxis(x);
     scatter->attachAxis(y);
 
-    // 当鼠标悬停在点上时，触发信号
-    QObject::connect(scatter, &QScatterSeries::hovered, [=](const QPointF& point, bool state) {
+    // 当鼠标悬停在点上时，触发信号，显示数据
+    QObject::connect(scatter, &QScatterSeries::hovered, this, [=](const QPointF& point, bool state) {
         if (state) {
-            // 鼠标移动到点上，显示工具提示（也就是显示数据内容）
             QToolTip::showText(QCursor::pos(),
                                QString("X: %1, Y: %2").arg(point.x()).arg(point.y()),
                                chartView);
         }
-    });
+    });  // 使用 UniqueConnection 避免信号重复连接
 
-    if (ui->cvSegTime->chart() != nullptr)
+
+    if (chartView->chart() != nullptr)
     {
         chartView->setChart(new QChart());  // 作用是与之前的QChart解绑
     }
@@ -437,7 +487,145 @@ bool MainWindow::initChart(QChartView* chartView,
     chartView->setRenderHint(QPainter::Antialiasing);  // 抗锯齿
 
     writeSuccLog(QString("Successed init chart %1").arg(chart_tital));
+    return true;
+}
 
+bool MainWindow::initChart(QChartView* chartView, QChart* chart,
+                           QString chart_tital, QFont chart_tital_font, bool legend_visible,
+                           QList<QSplineSeries*>  list_spline,  QList<QString> list_spline_title,
+                           QList<QScatterSeries*> list_scatter, QList<QString> list_scatter_title,
+                           QList<Qt::GlobalColor> list_spline_color,  QList<Qt::GlobalColor> list_scatter_color,
+                           QLogValueAxis* x, QString x_tital,
+                           QValueAxis* y,    QString y_tital)
+{
+    writeInfoLog(QString("Start init chart list %1").arg(chart_tital));
+
+    if (list_spline.size() != list_scatter.size())
+    {
+        qDebug() << "InitChart failed: Size of spline list != size of scatter list";
+        writeErrorLog("InitChart failed: Size of spline list != size of scatter list");
+        return false;
+    }
+
+    if (list_spline.size() != list_spline_title.size())
+    {
+        qDebug() << "InitChart failed: Size of spline list != size of spline title list";
+        writeErrorLog("InitChart failed: Size of spline list != size of spline title list");
+        return false;
+    }
+
+    if (list_scatter.size() != list_scatter_title.size())
+    {
+        qDebug() << "InitChart failed: Size of scatter list != size of scatter title list";
+        writeErrorLog("InitChart failed: Size of scatter list != size of scatter title list");
+        return false;
+    }
+
+    if (list_spline_color.size() != list_scatter_color.size())
+    {
+        qDebug() << "InitChart failed: Size of spline color != size of spline color";
+        writeErrorLog("InitChart failed: Size of spline color != size of spline color");
+        return false;
+    }
+
+    if (!chartView) {
+        qDebug() << "InitChart failed: chartView is nullptr";
+        writeErrorLog("InitChart failed: chartView is nullptr");
+        return false;
+    }
+    if (!chart) {
+        qDebug() << "InitChart failed: chart is nullptr";
+        writeErrorLog("InitChart failed: chart is nullptr");
+        return false;
+    }
+    if (!x) {
+        qDebug() << "InitChart failed: x axis is nullptr";
+        writeErrorLog("InitChart failed: x axis is nullptr");
+        return false;
+    }
+    if (!y) {
+        qDebug() << "InitChart failed: y axis is nullptr";
+        writeErrorLog("InitChart failed: y axis is nullptr");
+        return false;
+    }
+
+    chart->setTitleFont(chart_tital_font);  // 应用字体设置到图表标题
+    chart->setTitle(chart_tital);
+    chart->legend()->setVisible(legend_visible);  // 显示图例
+    chart->setMargins(QMargins(0, 0, 0, 0));  // 移除图像周围的留白区域
+
+    chart->addAxis(x, Qt::AlignBottom);  // 【！！！注意：需要立刻放入chart！否则可能会出错！！！】
+    x->setTitleText(x_tital);
+    // x->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
+    x->setBase(2);              // 基数为 2 (处理 2, 4, 8, 16...等倍数增长的数据)
+    x->setLabelFormat("%d");  // 设置标签格式，显示整数
+    x->setRange(4, 2048);
+
+    chart->addAxis(y, Qt::AlignLeft);
+    y->setTitleText(y_tital);
+    // y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
+    y->setTickCount(10);
+    y->setLabelFormat("%.2f");  // 设置显示格式，保留两位小数
+    y->setRange(0.0, 1.0);
+
+    QFont axisFont;
+    axisFont.setPointSize(15);  // 设置合适的字体大小
+    y->setLabelsFont(axisFont);  // 应用字体到 Y 轴
+
+    for (int i = 0; i < list_spline.size(); ++i)
+    {
+        QSplineSeries*  spline  = list_spline.at(i);
+        QScatterSeries* scatter = list_scatter.at(i);
+        QString         spline_legend  = list_spline_title.at(i);
+        QString         scatter_legend = list_scatter_title.at(i);
+        Qt::GlobalColor spline_color   = list_spline_color.at(i);
+        Qt::GlobalColor scatter_color  = list_scatter_color.at(i);
+
+        if (!spline)
+        {
+            qDebug() << "InitChart failed: spline is nullptr";
+            writeErrorLog("InitChart failed: spline is nullptr");
+            return false;
+        }
+
+        if (!scatter)
+        {
+            qDebug() << "InitChart failed: scatter is nullptr";
+            writeErrorLog("InitChart failed: scatter is nullptr");
+            return false;
+        }
+
+        chart->addSeries(spline);
+        spline->setName(spline_legend);
+        spline->setColor(spline_color);
+        spline->attachAxis(x);
+        spline->attachAxis(y);
+
+        chart->addSeries(scatter);
+        scatter->setName(scatter_legend);
+        scatter->setColor(scatter_color);  // 设置曲线颜色
+        scatter->setMarkerSize(ThemeStyle::SCATTER_MARK_SIZE);
+        scatter->attachAxis(x);
+        scatter->attachAxis(y);
+
+        // 当鼠标悬停在点上时，触发信号，显示数据
+        QObject::connect(scatter, &QScatterSeries::hovered, this, [=](const QPointF& point, bool state) {
+            if (state) {
+                QToolTip::showText(QCursor::pos(),
+                                   QString("X: %1, Y: %2").arg(point.x()).arg(point.y()),
+                                   chartView);
+            }
+        });  // 使用 UniqueConnection 避免信号重复连接
+    }
+
+    if (chartView->chart() != nullptr)
+    {
+        chartView->setChart(new QChart());
+    }
+    chartView->setChart(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);  // 抗锯齿
+
+    writeSuccLog(QString("Successed init chart %1").arg(chart_tital));
     return true;
 }
 
@@ -447,9 +635,16 @@ bool MainWindow::initChart(QChartView* chartView,
  */
 bool MainWindow::addPointSegTimeAndRepeateRate(const ResultComput &result)
 {
+#if 0
     if (!_chart_seg_time) {
         qDebug() << "Add data point failed: chart seg time is nullptr";
         writeErrorLog("Add data point failed: chart seg time is nullptr");
+        return false;
+    }
+#endif
+    if (!_chart_seg_recover_time) {
+        qDebug() << "Add data point failed: chart seg and recover time is nullptr";
+        writeErrorLog("Add data point failed: chart seg and recover time is nullptr");
         return false;
     }
     if (!_spline_seg_time) {
@@ -482,9 +677,9 @@ bool MainWindow::addPointSegTimeAndRepeateRate(const ResultComput &result)
     _spline_seg_time->append( result.blockSize, result.segTime);
     _scatter_seg_time->append(result.blockSize, result.segTime);
 
-    if (result.segTime > _y_seg_time->max())
+    if (result.segTime > _y_seg_recover_time->max())
     {
-        _y_seg_time->setRange(0.0, result.segTime);
+        _y_seg_recover_time->setRange(0.0, result.segTime);
     }
 
     writeInfoLog(QString("Add data point (%1, %2) to chart Repeate rate").arg(QString::number(result.blockSize), QString::number(result.repeatRate)));
@@ -505,9 +700,16 @@ bool MainWindow::addPointSegTimeAndRepeateRate(const ResultComput &result)
  */
 bool MainWindow::addPointRecoverTime(const ResultComput &result)
 {
+#if 0
     if (!_chart_recover_time) {
         qDebug() << "Add data point failed: chart recover time is nullptr";
         writeErrorLog("Add data point failed: chart recover time is nullptr");
+        return false;
+    }
+#endif
+    if (!_chart_seg_recover_time) {
+        qDebug() << "Add data point failed: chart seg and recover time is nullptr";
+        writeErrorLog("Add data point failed: chart seg and recover time is nullptr");
         return false;
     }
     if (!_spline_recover_time) {
@@ -525,9 +727,9 @@ bool MainWindow::addPointRecoverTime(const ResultComput &result)
     _spline_recover_time->append( result.blockSize, result.recoveredTime);
     _scatter_recover_time->append(result.blockSize, result.recoveredTime);
 
-    if (result.recoveredTime > _y_recover_time->max())
+    if (result.recoveredTime > _y_seg_recover_time->max())
     {
-        _y_recover_time->setRange(0.0, result.recoveredTime);
+        _y_seg_recover_time->setRange(0.0, result.recoveredTime);
     }
 
     return true;
@@ -1017,12 +1219,17 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
     delete _asyncJob;
     delete _threadAsyncJob;
-
+#if 0
     delete _x_seg_time;
-    delete _x_recover_time;
-    delete _x_repeat_rate;
     delete _y_seg_time;
+
+    delete _x_recover_time;
     delete _y_recover_time;
+#endif
+    delete _x_seg_recover_time;
+    delete _y_seg_recover_time;
+
+    delete _x_repeat_rate;
     delete _y_repeat_rate;
 
     delete _spline_seg_time     ;    // 平滑曲线 - 分块时间
@@ -1034,8 +1241,11 @@ void MainWindow::closeEvent(QCloseEvent* event)
     delete _scatter_repeat_rate ;    // 数据点 - 哈希重复率
 
     /* 注意，画布最后再删除，因为上面图表对象是chart的子对象 */
+#if 0
     delete _chart_seg_time      ;    // 画布 - 分块时间
     delete _chart_recover_time  ;    // 画布 - 恢复时间
+#endif
+    delete _chart_seg_recover_time;
     delete _chart_repeat_rate   ;    // 画布 - 哈希重复率
 
     delete _font_tital    ;     // 字体 - 标题

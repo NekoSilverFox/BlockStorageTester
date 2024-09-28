@@ -64,10 +64,20 @@ private:
     /* 绘图 */
     void initAllCharts();
     bool initChart(QChartView* chartView,
-                   QChart* chart, QString chart_tital, QFont chart_tital_font,
+                   QChart* chart, QString chart_tital,
+                   QFont chart_tital_font, bool legend_visible,
                    QSplineSeries* spline, QScatterSeries* scatter,
                    QLogValueAxis* x, QString x_tital,
                    QValueAxis* y, QString y_tital);
+
+    bool initChart(QChartView* chartView, QChart* chart,
+                   QString chart_tital, QFont chart_tital_font, bool legend_visible,
+                   QList<QSplineSeries*> list_spline, QList<QString> list_spline_title,
+                   QList<QScatterSeries*> list_scatter, QList<QString> list_scatter_title,
+                   QList<Qt::GlobalColor> list_spline_color,  QList<Qt::GlobalColor> list_scatter_color,
+                   QLogValueAxis* x, QString x_tital,
+                   QValueAxis* y, QString y_tital);
+
     bool addPointSegTimeAndRepeateRate(const ResultComput& result);
     bool addPointRecoverTime(const ResultComput& result);
 
@@ -92,28 +102,35 @@ private:
     bool is_db_conn;   // 子线程数据库连接状态
 
     /* 绘图区 */
-    QChart*     _chart_seg_time;    // 画布 - 分块时间
-    QChart*     _chart_recover_time;// 画布 - 恢复时间
-    QChart*     _chart_repeat_rate; // 画布 - 哈希重复率
-
+#if 0
     QLogValueAxis*  _x_seg_time;
     QValueAxis*     _y_seg_time;
 
+    QSplineSeries*  _spline_seg_time;       // 平滑曲线 - 分块时间
+    QScatterSeries* _scatter_seg_time;      // 数据点 - 分块时间
+    QChart*         _chart_seg_time;        // 画布 - 分块时间
+
     QLogValueAxis*  _x_recover_time;
     QValueAxis*     _y_recover_time;
+    QSplineSeries*  _spline_recover_time;   // 平滑曲线 - 恢复时间
+    QScatterSeries* _scatter_recover_time;  // 数据点 - 恢复时间
+    QChart*         _chart_recover_time;    // 画布 - 恢复时间
+#endif
+
+    QLogValueAxis*  _x_seg_recover_time;
+    QValueAxis*     _y_seg_recover_time;
+    QSplineSeries*  _spline_seg_time;       // 平滑曲线 - 分块时间
+    QScatterSeries* _scatter_seg_time;      // 数据点 - 分块时间
+    QSplineSeries*  _spline_recover_time;   // 平滑曲线 - 恢复时间
+    QScatterSeries* _scatter_recover_time;  // 数据点 - 恢复时间
+    QChart*         _chart_seg_recover_time; // 画布 - 分块时间 & 恢复时间
 
     QLogValueAxis*  _x_repeat_rate;
     QValueAxis*     _y_repeat_rate;
-
-    QSplineSeries*  _spline_seg_time;       // 平滑曲线 - 分块时间
-    QSplineSeries*  _spline_recover_time;   // 平滑曲线 - 恢复时间
     QSplineSeries*  _spline_repeat_rate;    // 平滑曲线 - 哈希重复率
+    QScatterSeries* _scatter_repeat_rate;   // 数据点 - 哈希重复率
+    QChart*     _chart_repeat_rate;         // 画布 - 哈希重复率
 
-    QScatterSeries* _scatter_seg_time;       // 数据点 - 分块时间
-    QScatterSeries* _scatter_recover_time;   // 数据点 - 恢复时间
-    QScatterSeries* _scatter_repeat_rate;    // 数据点 - 哈希重复率
-
-    QFont*      _font_tital;        // 字体 - 标题
-
+    QFont*      _font_tital;                // 字体 - 标题
 };
 #endif // MAINWINDOW_H

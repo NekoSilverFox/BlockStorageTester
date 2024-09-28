@@ -223,7 +223,6 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
         return false;
     }
 
-    QSqlQuery q;
     /**
      * block_hash           块的哈希值
      * source_file_path     块所在的源文件 TODO 确认这里都改了
@@ -241,6 +240,7 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
     qDebug() << QString("Create table `%1`").arg(tbName);
     qDebug() << QString("↳ Run SQL: %1").arg(sql);
 
+    QSqlQuery q;
     if (q.exec(sql))
     {
         _last_log = QString("Successed create table `%1`").arg(tbName);
@@ -249,6 +249,41 @@ bool DatabaseService::createBlockInfoTable(const QString& tbName)
 
     _last_log = QString("Failed to create table `%1`: %2").arg(tbName, q.lastError().text());
     return false;
+}
+
+/**
+ * @brief DatabaseService::deleteTable 删除当前连接的数据库中指定名称的表
+ * @param tbName 要删除的表名
+ * @return 是否成功删除
+ */
+bool DatabaseService::deleteTable(const QString &tbName)
+{
+    if (!isDatabaseOpen())
+    {
+        return false;
+    }
+
+    if (!isTableExists(tbName))
+    {
+        return true;
+    }
+
+    // 构建 SQL 语句，删除指定的表
+    QString sql = QString("DROP TABLE IF EXISTS %1;").arg(tbName);
+    _last_sql = sql;
+    qDebug() << QString("Delete table `%1`").arg(tbName);
+    qDebug() << QString("↳ Run SQL: %1").arg(sql);
+
+    QSqlQuery q;
+    if (q.exec(sql))
+    {
+        _last_log = QString("Successfully deleted table `%1`").arg(tbName);
+        return true;
+    }
+
+    _last_log = QString("Failed to delete table `%1`: %2").arg(tbName, q.lastError().text());
+    return false;
+
 }
 
 /**
@@ -498,7 +533,6 @@ BlockInfo DatabaseService::getBlockInfo(const QString &tbName, const QByteArray 
 
     return BlockInfo();  // 查询失败或没有找到匹配记录时返回 空对象
 }
-
 
 QString DatabaseService::lastSQL()
 {

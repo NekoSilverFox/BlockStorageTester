@@ -1,5 +1,5 @@
 # 注意：编译环境要使用 Qt 安装器所安装的qt环境，否则可能出错
-QT       += core gui sql
+QT       += core gui sql charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

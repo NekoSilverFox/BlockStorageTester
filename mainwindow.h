@@ -6,6 +6,13 @@
 
 #include <QMainWindow>
 #include <QThread>
+#include <QValueAxis>
+#include <QChartView>
+#include <QChart>
+#include <QSplineSeries>
+#include <QScatterSeries>
+#include <QCategoryAxis>
+#include <QLogValueAxis>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -26,8 +33,12 @@ public:
     void writeSuccLog(const QString& msg);
 
     /* 准备数据并且发送信号执行测试 */
+#if 0
     void startTestSegmentationPerformance();    // 测试分块分割（segmentation）写入性能
     void startTestRecoverPerformance();         // 测试分块恢复性能
+#endif
+    void startSingleTest();                 // 开始单步测试
+    void startBenchmarkTest();              // 开始基准测试
 
     /* 结果展示 & 保存 */
     void addSegmentationResult(const ResultComput& seg_result);
@@ -50,6 +61,26 @@ private:
     /* 数据库 & 数据表相关操作 */
     void asyncJobDbConnStateChanged(const bool is_conn);
 
+    /* 绘图 */
+    void initAllCharts();
+    bool initChart(QChartView* chartView,
+                   QChart* chart, QString chart_tital,
+                   QFont chart_tital_font, bool legend_visible,
+                   QSplineSeries* spline, QScatterSeries* scatter,
+                   QLogValueAxis* x, QString x_tital,
+                   QValueAxis* y, QString y_tital);
+
+    bool initChart(QChartView* chartView, QChart* chart,
+                   QString chart_tital, QFont chart_tital_font, bool legend_visible,
+                   QList<QSplineSeries*> list_spline, QList<QString> list_spline_title,
+                   QList<QScatterSeries*> list_scatter, QList<QString> list_scatter_title,
+                   QList<Qt::GlobalColor> list_spline_color,  QList<Qt::GlobalColor> list_scatter_color,
+                   QLogValueAxis* x, QString x_tital,
+                   QValueAxis* y, QString y_tital);
+
+    bool addPointSegTimeAndRepeateRate(const ResultComput& result);
+    bool addPointRecoverTime(const ResultComput& result);
+
 private slots:
     void setActivityWidget(const bool activity);
 
@@ -64,10 +95,42 @@ private slots:
 private:
     Ui::MainWindow* ui;
 
-    QThread* _threadAsyncJob;       // 用于计算的线程
-    AsyncComputeModule* _asyncJob;  // 并行计算任务
-    QList<ResultComput>* _listResultComput;  // 所有任务的计算结果
+    QThread*                _threadAsyncJob;    // 用于计算的线程
+    AsyncComputeModule*     _asyncJob;          // 并行计算任务
+    QList<ResultComput>*    _listResultComput;  // 所有任务的计算结果
 
     bool is_db_conn;   // 子线程数据库连接状态
+
+    /* 绘图区 */
+#if 0
+    QLogValueAxis*  _x_seg_time;
+    QValueAxis*     _y_seg_time;
+
+    QSplineSeries*  _spline_seg_time;       // 平滑曲线 - 分块时间
+    QScatterSeries* _scatter_seg_time;      // 数据点 - 分块时间
+    QChart*         _chart_seg_time;        // 画布 - 分块时间
+
+    QLogValueAxis*  _x_recover_time;
+    QValueAxis*     _y_recover_time;
+    QSplineSeries*  _spline_recover_time;   // 平滑曲线 - 恢复时间
+    QScatterSeries* _scatter_recover_time;  // 数据点 - 恢复时间
+    QChart*         _chart_recover_time;    // 画布 - 恢复时间
+#endif
+
+    QLogValueAxis*  _x_seg_recover_time;
+    QValueAxis*     _y_seg_recover_time;
+    QSplineSeries*  _spline_seg_time;       // 平滑曲线 - 分块时间
+    QScatterSeries* _scatter_seg_time;      // 数据点 - 分块时间
+    QSplineSeries*  _spline_recover_time;   // 平滑曲线 - 恢复时间
+    QScatterSeries* _scatter_recover_time;  // 数据点 - 恢复时间
+    QChart*         _chart_seg_recover_time; // 画布 - 分块时间 & 恢复时间
+
+    QLogValueAxis*  _x_repeat_rate;
+    QValueAxis*     _y_repeat_rate;
+    QSplineSeries*  _spline_repeat_rate;    // 平滑曲线 - 哈希重复率
+    QScatterSeries* _scatter_repeat_rate;   // 数据点 - 哈希重复率
+    QChart*     _chart_repeat_rate;         // 画布 - 哈希重复率
+
+    QFont*      _font_tital;                // 字体 - 标题
 };
 #endif // MAINWINDOW_H

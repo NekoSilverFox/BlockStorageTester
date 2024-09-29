@@ -90,8 +90,10 @@ private slots:
     void selectSourceFile();
     void selectBlockFile();
     void selectRecoverFile();
+    void saveChartAsImage();
 
     void closeEvent(QCloseEvent* event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
     Ui::MainWindow* ui;

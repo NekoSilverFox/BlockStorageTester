@@ -1211,6 +1211,22 @@ void MainWindow::selectRecoverFile()
     return;
 }
 
+void MainWindow::saveChartAsImage()
+{
+    // 打开文件对话框，选择保存图片的路径
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Chart", QDir::homePath(), "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*)");
+
+    if (!fileName.isEmpty())
+    {
+        // 捕获 QChartView 内容并保存为图片
+        QPixmap pixmap = this->grab();  // 获取当前视图内容
+        if (!pixmap.save(fileName)) {
+            QMessageBox::warning(this, "Save Error", "Failed to save the chart as an image.");
+        }
+    }
+}
+
+
 /**
  * @brief MainWindow::setLbDBConnectedStyle 设置 lbDBConnected 的风格
  * @param style 风格
@@ -1294,4 +1310,23 @@ void MainWindow::closeEvent(QCloseEvent* event)
     saveSettings();
     event->accept();
     QMainWindow::closeEvent(event);
+}
+
+/**
+ * @brief MainWindow::contextMenuEvent 重写右键菜单事件
+ * @param event
+ */
+void MainWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu contextMenu(this);
+
+    // 添加保存图片的选项
+    QAction saveAsImageAction("Save as Image", this);
+    connect(&saveAsImageAction, &QAction::triggered, this, &MainWindow::saveChartAsImage);
+
+    // 将动作添加到上下文菜单中
+    contextMenu.addAction(&saveAsImageAction);
+
+    // 显示上下文菜单
+    contextMenu.exec(event->globalPos());
 }

@@ -43,7 +43,8 @@ public:
     /* 结果展示 & 保存 */
     void addSegmentationResult(const ResultComput& seg_result);
     void addRecoverResult(const ResultComput& recover_result);
-    bool saveResultComputToCSV(const QString& filePath);
+    bool saveResultComputToCSV();
+    bool saveLog();
 
     /* 数据库链接指示灯 */
     void setLbDBConnectedStyle(QString style);
@@ -98,6 +99,8 @@ private:
     QThread*                _threadAsyncJob;    // 用于计算的线程
     AsyncComputeModule*     _asyncJob;          // 并行计算任务
     QList<ResultComput>*    _listResultComput;  // 所有任务的计算结果
+
+    QString                 _source_path;       // 源文件路径（根据这个路径推断 CSV 保存路径和日志路径）
 
     bool is_db_conn;   // 子线程数据库连接状态
 

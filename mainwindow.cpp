@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     writeInfoLog(QString("Available drivers: %1").arg(QSqlDatabase::drivers().join(" ")));
 
     is_db_conn = false;
+    _source_path = "";
     _listResultComput = new QList<ResultComput>();
     ui->cvSegTime->setVisible(false);
     ui->cvRecoverTime->setVisible(false);
@@ -362,8 +363,10 @@ void MainWindow::initAllCharts()
               _y_recover_time, "Time (s)");
 #endif
 
+    QString hash_name = Hash::getHashName((HashAlg)ui->cbBenchmarkAlg->currentIndex());
+
     initChart(ui->cvSegAndRecoverTime, _chart_seg_recover_time,
-              "Segmentation and Recover time versus block size",
+              QString("Segmentation and Recover time versus block size (Base on %1)").arg(hash_name),
               *_font_tital, true,
               QList<QLineSeries*>() << _spline_seg_time << _spline_recover_time,
               QList<QString>() << "" << "",
@@ -375,7 +378,7 @@ void MainWindow::initAllCharts()
               _y_seg_recover_time, "Time (s)");
 
     initChart(ui->cvRepeatRate, _chart_repeat_rate,
-              "Percentage of repeats versus block size",
+              QString("Percentage of repeats versus block size (Base on %1)").arg(hash_name),
               *_font_tital, false,
               _spline_repeat_rate, _scatter_repeat_rate,
               _x_repeat_rate, "Block size (Byte)",
@@ -451,7 +454,7 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
     chart->addAxis(y, Qt::AlignLeft);
     y->setTitleText(y_tital);
     // y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
-    y->setTickCount(10);
+    y->setTickCount(11);
     y->setLabelFormat("%.2f");  // 设置显示格式，保留两位小数
     y->setRange(0.0, 100.0);
     QFont axisFont;
@@ -564,7 +567,7 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
     chart->addAxis(y, Qt::AlignLeft);
     y->setTitleText(y_tital);
     // y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
-    y->setTickCount(10);
+    y->setTickCount(11);
     y->setLabelFormat("%.2f");  // 设置显示格式，保留两位小数
     y->setRange(0.0, 1.0);
 
@@ -812,7 +815,6 @@ void MainWindow::aboutThisProject()
  */
 void MainWindow::autoConnectionDBModule()
 {
-
     /**
      *  【主线程】参数检查
      */
@@ -987,6 +989,7 @@ void MainWindow::startSingleTest()
     }
 
     /* 获取读取的信息（块大小和算法） */
+    _source_path = ui->leSourceFile->text();
     const size_t block_size = ui->cbBlockSize->currentText().toInt();  // 每个块的大小(Byte)
     const HashAlg alg = HashAlg(ui->cbHashAlg->currentIndex());
 
@@ -1030,6 +1033,7 @@ void MainWindow::startBenchmarkTest()
 
     initAllCharts();
 
+    _source_path = ui->leSourceFile->text();
     const HashAlg alg = HashAlg(ui->cbBenchmarkAlg->currentIndex());
     QList<size_t> blockSizeList;  // 参与测试的所有块大小
     for (int i = 0; i < ui->cbBlockSize->count(); ++i)
@@ -1091,9 +1095,17 @@ void MainWindow::addRecoverResult(const ResultComput& recover_result)
     _listResultComput->append(recover_result);
 }
 
-bool MainWindow::saveResultComputToCSV(const QString &filePath)
+/**
+ * @brief MainWindow::saveResultComputToCSV 所有运算结果保存为 CSV
+ * @return
+ */
+bool MainWindow::saveResultComputToCSV()
 {
-    QFile file(filePath);
+    QFileInfo source_info(_source_path);
+
+    QString csv_path = source_info.dir().filePath(QString("RESULT_").append(source_info.baseName().append(".csv")));
+
+    QFile file(csv_path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         qDebug() << "Unable to open file for writing:" << file.errorString();
@@ -1122,7 +1134,28 @@ bool MainWindow::saveResultComputToCSV(const QString &filePath)
             << result.recoveredTime  << "\n";// 恢复任务所用时间
     }
 
-    qDebug() << "Successed save result compute to path:" << filePath;
+    qDebug() << "Successed save result compute to path:" << csv_path;
+    file.close();
+    return true;
+}
+
+bool MainWindow::saveLog()
+{
+    QFileInfo source_info(_source_path);
+
+    QString log_path = source_info.dir().filePath(QString("LOG_").append(source_info.baseName().append(".log")));
+
+    QFile file(log_path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        qDebug() << "Unable to open file for writing:" << file.errorString();
+        return false;
+    }
+
+    QTextStream out(&file);
+    out << ui->txbLog->toPlainText();
+
+    qDebug() << "Successed save log to path:" << log_path;
     file.close();
     return true;
 }
@@ -1142,11 +1175,11 @@ void MainWindow::selectSourceFile()
     QFileInfo sourceInfo(sourceFilePath);  // 使用 QFileInfo 解析路径
      // QString fileName = fileInfo.fileName(); // 获取源文件文件名
      // QString filePath = fileInfo.path();     // 获取去除文件名后的路径
-    QString blockFilePath = sourceInfo.filePath().append(".hbk");  // 重新构造文件名 hbk - Hash Block
+    QString blockFilePath = sourceInfo.dir().filePath(sourceInfo.baseName().append(".hbk"));;  // 重新构造文件名 hbk - Hash Block
     ui->leBlockFile->setText(blockFilePath);
 
     /* 自动添加 recover 文件路径 */
-    QString recoverFilePath = sourceInfo.dir().filePath(QString("RECOVER_").append(sourceInfo.fileName()));
+    QString recoverFilePath = sourceInfo.dir().filePath(QString("RECOVERED_").append(sourceInfo.fileName()));
     ui->leRecoverFile->setText(recoverFilePath);
 
     return;
@@ -1251,7 +1284,11 @@ void MainWindow::closeEvent(QCloseEvent* event)
     delete _font_tital    ;     // 字体 - 标题
 
     /* 自动保存运算结果到 CSV */
-    saveResultComputToCSV(QDir::currentPath().append("result_compute.csv"));
+    if (!_source_path.isEmpty())
+    {
+        saveResultComputToCSV();
+        saveLog();
+    }
     delete _listResultComput;
 
     saveSettings();

@@ -317,28 +317,28 @@ void MainWindow::initAllCharts()
 #if 0
     _x_seg_time          = new QLogValueAxis();
     _y_seg_time          = new QValueAxis();
-    _spline_seg_time     = new QSplineSeries();
+    _spline_seg_time     = new QLineSeries();
     _scatter_seg_time    = new QScatterSeries();
     _chart_seg_time      = new QChart();
 
     _x_recover_time      = new QLogValueAxis();
     _y_recover_time      = new QValueAxis();
-    _spline_recover_time = new QSplineSeries();
+    _spline_recover_time = new QLineSeries();
     _scatter_recover_time= new QScatterSeries();
     _chart_recover_time  = new QChart();
 #endif
 
     _x_seg_recover_time         = new QLogValueAxis();
     _y_seg_recover_time         = new QValueAxis();
-    _spline_seg_time            = new QSplineSeries();
+    _spline_seg_time            = new QLineSeries();
     _scatter_seg_time           = new QScatterSeries();
-    _spline_recover_time        = new QSplineSeries();
+    _spline_recover_time        = new QLineSeries();
     _scatter_recover_time       = new QScatterSeries();
     _chart_seg_recover_time     = new QChart();
 
     _x_repeat_rate       = new QLogValueAxis();
     _y_repeat_rate       = new QValueAxis();
-    _spline_repeat_rate  = new QSplineSeries();
+    _spline_repeat_rate  = new QLineSeries();
     _scatter_repeat_rate = new QScatterSeries();
     _chart_repeat_rate   = new QChart();
 
@@ -365,7 +365,7 @@ void MainWindow::initAllCharts()
     initChart(ui->cvSegAndRecoverTime, _chart_seg_recover_time,
               "Segmentation and Recover time versus block size",
               *_font_tital, true,
-              QList<QSplineSeries*>() << _spline_seg_time << _spline_recover_time,
+              QList<QLineSeries*>() << _spline_seg_time << _spline_recover_time,
               QList<QString>() << "" << "",
               QList<QScatterSeries*>() << _scatter_seg_time << _scatter_recover_time,
               QList<QString>() << "Segmentation time" << "Restoration time",
@@ -399,7 +399,7 @@ void MainWindow::initAllCharts()
  */
 bool MainWindow::initChart(QChartView* chartView, QChart* chart,
                            QString chart_tital, QFont chart_tital_font, bool legend_visible,
-                           QSplineSeries* spline, QScatterSeries* scatter,
+                           QLineSeries* spline, QScatterSeries* scatter,
                            QLogValueAxis* x, QString x_tital,
                            QValueAxis* y, QString y_tital)
 {
@@ -492,7 +492,7 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
 
 bool MainWindow::initChart(QChartView* chartView, QChart* chart,
                            QString chart_tital, QFont chart_tital_font, bool legend_visible,
-                           QList<QSplineSeries*>  list_spline,  QList<QString> list_spline_title,
+                           QList<QLineSeries*>  list_spline,  QList<QString> list_spline_title,
                            QList<QScatterSeries*> list_scatter, QList<QString> list_scatter_title,
                            QList<Qt::GlobalColor> list_spline_color,  QList<Qt::GlobalColor> list_scatter_color,
                            QLogValueAxis* x, QString x_tital,
@@ -566,7 +566,7 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
     // y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
     y->setTickCount(10);
     y->setLabelFormat("%.2f");  // 设置显示格式，保留两位小数
-    y->setRange(0.0, 1.0);
+    y->setRange(0.0, 100.0);
 
     QFont axisFont;
     axisFont.setPointSize(15);  // 设置合适的字体大小
@@ -574,7 +574,7 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
 
     for (int i = 0; i < list_spline.size(); ++i)
     {
-        QSplineSeries*  spline  = list_spline.at(i);
+        QLineSeries*  spline  = list_spline.at(i);
         QScatterSeries* scatter = list_scatter.at(i);
         QString         spline_legend  = list_spline_title.at(i);
         QString         scatter_legend = list_scatter_title.at(i);

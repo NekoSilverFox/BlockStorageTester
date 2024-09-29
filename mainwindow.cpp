@@ -453,7 +453,7 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
     // y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
     y->setTickCount(10);
     y->setLabelFormat("%.2f");  // 设置显示格式，保留两位小数
-    y->setRange(0.0, 1.0);
+    y->setRange(0.0, 100.0);
     QFont axisFont;
     axisFont.setPointSize(15);  // 设置合适的字体大小
     y->setLabelsFont(axisFont);  // 应用字体到 Y 轴
@@ -566,7 +566,7 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
     // y->setLabelsAngle(-45);  // 设置轴上的文字倾斜 45 度
     y->setTickCount(10);
     y->setLabelFormat("%.2f");  // 设置显示格式，保留两位小数
-    y->setRange(0.0, 100.0);
+    y->setRange(0.0, 1.0);
 
     QFont axisFont;
     axisFont.setPointSize(15);  // 设置合适的字体大小

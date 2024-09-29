@@ -123,13 +123,13 @@ private:
     QScatterSeries* _scatter_seg_time;      // 数据点 - 分块时间
     QLineSeries*    _spline_recover_time;   // 平滑曲线 - 恢复时间
     QScatterSeries* _scatter_recover_time;  // 数据点 - 恢复时间
-    QChart*         _chart_seg_recover_time; // 画布 - 分块时间 & 恢复时间
+    QChart*         _chart_seg_recover_time;// 画布 - 分块时间 & 恢复时间
 
     QLogValueAxis*  _x_repeat_rate;
     QValueAxis*     _y_repeat_rate;
     QLineSeries*    _spline_repeat_rate;    // 平滑曲线 - 哈希重复率
     QScatterSeries* _scatter_repeat_rate;   // 数据点 - 哈希重复率
-    QChart*     _chart_repeat_rate;         // 画布 - 哈希重复率
+    QChart*         _chart_repeat_rate;     // 画布 - 哈希重复率
 
     QFont*      _font_tital;                // 字体 - 标题
 };

@@ -510,6 +510,18 @@ void AsyncComputeModule::runSingleTest(const QString &source_file_path, const QS
 {
     emit signalWriteInfoLog(QString("[Thread %1] Start to run Singal Test").arg(getCurrentThreadID()));
 
+    /* 数据库无连接 */
+    if (!_dbs->isDatabaseOpen())
+    {
+        _last_log = QString("[Thread %1] Database do not connected, test exit").arg(getCurrentThreadID());
+        emit signalWriteErrorLog(_last_log);
+        emit signalWarnBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        emit signalTestRecoverPerformanceFinished(false);
+        return;
+    }
+
     runTestSegmentationProfmance(source_file_path, block_file_path, alg, block_size);
     runTestRecoverProfmance(recover_file_path, block_file_path, alg, block_size);
 

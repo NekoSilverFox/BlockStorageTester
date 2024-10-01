@@ -91,8 +91,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tbwResult->setColumnCount(res_list_header.size());
     ui->tbwResult->setHorizontalHeaderLabels(res_list_header);
     ui->tbwResult->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    // ui->tbwResult->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    ui->tbwResult->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     // ui->tbwResult->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
     // ui->tbwResult->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     // ui->tbwResult->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);

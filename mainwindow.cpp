@@ -1175,7 +1175,7 @@ void MainWindow::selectSourceFile()
     QFileInfo sourceInfo(sourceFilePath);  // 使用 QFileInfo 解析路径
      // QString fileName = fileInfo.fileName(); // 获取源文件文件名
      // QString filePath = fileInfo.path();     // 获取去除文件名后的路径
-    QString blockFilePath = sourceInfo.dir().filePath(sourceInfo.baseName().append(".hbk"));;  // 重新构造文件名 hbk - Hash Block
+    QString blockFilePath = sourceInfo.dir().filePath(sourceInfo.baseName().append(".bkh"));;  // 重新构造文件名 bkh - Hash Block
     ui->leBlockFile->setText(blockFilePath);
 
     /* 自动添加 recover 文件路径 */

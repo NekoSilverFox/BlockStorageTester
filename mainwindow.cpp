@@ -977,10 +977,17 @@ void MainWindow::startSingleTest()
         setActivityWidget(true);
         return;
     }
+    if (ui->leUniqueBlockFile->text().isEmpty())
+    {
+        writeErrorLog("Unique-Block file (.ubk) path is empty");
+        QMessageBox::warning(this, "Warning", "Unique-Block file (.ubk) path is empty!");
+        setActivityWidget(true);
+        return;
+    }
     if (ui->leBlockHashFile->text().isEmpty())
     {
-        writeErrorLog("Block file path is empty");
-        QMessageBox::warning(this, "Warning", "Block file path is empty!");
+        writeErrorLog("Block-Hash file (.bkh) path is empty");
+        QMessageBox::warning(this, "Warning", "Block-Hash file (.bkh) path is empty!");
         setActivityWidget(true);
         return;
     }
@@ -997,9 +1004,20 @@ void MainWindow::startSingleTest()
     const size_t block_size = ui->cbBlockSize->currentText().toInt();  // 每个块的大小(Byte)
     const HashAlg alg = HashAlg(ui->cbHashAlg->currentIndex());
 
-    writeInfoLog(QString("Block %1 Bytes, Hash algorithm %2 (index: %3)").arg(QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
+    writeInfoLog(QString("Main thread ready emit signalRunSingleTest with<br>"
+                         "Source file path: %1<br>"
+                         "Unique-Block file (.ubk) path: %2<br>"
+                         "Block-Hash file (.bkh) path: %3<br>"
+                         "Recover file path: %4<br>"
+                         "Block size %5 Bytes, Hash algorithm %6 (index: %7)")
+                     .arg(ui->leSourceFile->text(),
+                          ui->leUniqueBlockFile->text(),
+                          ui->leBlockHashFile->text(),
+                          ui->leRecoverFile->text(),
+                          QString::number(block_size), ui->cbHashAlg->currentText(), QString::number(alg)));
 
     emit _asyncJob->signalRunSingleTest(ui->leSourceFile->text(),
+                                        ui->leUniqueBlockFile->text(),
                                         ui->leBlockHashFile->text(),
                                         ui->leRecoverFile->text(),
                                         alg, block_size);
@@ -1020,10 +1038,17 @@ void MainWindow::startBenchmarkTest()
         setActivityWidget(true);
         return;
     }
+    if (ui->leUniqueBlockFile->text().isEmpty())
+    {
+        writeErrorLog("Unique-Block file (.ubk) path is empty");
+        QMessageBox::warning(this, "Warning", "Unique-Block file (.ubk) path is empty!");
+        setActivityWidget(true);
+        return;
+    }
     if (ui->leBlockHashFile->text().isEmpty())
     {
-        writeErrorLog("Block file path is empty");
-        QMessageBox::warning(this, "Warning", "Block file path is empty!");
+        writeErrorLog("Block-Hash file (.bkh) path is empty");
+        QMessageBox::warning(this, "Warning", "Block-Hash file (.bkh) path is empty!");
         setActivityWidget(true);
         return;
     }
@@ -1046,7 +1071,20 @@ void MainWindow::startBenchmarkTest()
         // qDebug() << ui->cbBlockSize->itemText(i).toUInt();
     }
 
+    writeInfoLog(QString("Main thread ready emit signalRunBenchmarkTest with<br>"
+                         "Source file path: %1<br>"
+                         "Unique-Block file (.ubk) path: %2<br>"
+                         "Block-Hash file (.bkh) path: %3<br>"
+                         "Recover file path: %4<br>"
+                         "Hash algorithm %5 (index: %6)")
+                     .arg(ui->leSourceFile->text(),
+                          ui->leUniqueBlockFile->text(),
+                          ui->leBlockHashFile->text(),
+                          ui->leRecoverFile->text(),
+                          ui->cbHashAlg->currentText(), QString::number(alg)));
+
     emit _asyncJob->signalRunBenchmarkTest(ui->leSourceFile->text(),
+                                           ui->leUniqueBlockFile->text(),
                                            ui->leBlockHashFile->text(),
                                            ui->leRecoverFile->text(),
                                            alg, blockSizeList);
@@ -1179,8 +1217,12 @@ void MainWindow::selectSourceFile()
     QFileInfo sourceInfo(sourceFilePath);  // 使用 QFileInfo 解析路径
      // QString fileName = fileInfo.fileName(); // 获取源文件文件名
      // QString filePath = fileInfo.path();     // 获取去除文件名后的路径
-    QString blockFilePath = sourceInfo.dir().filePath(sourceInfo.baseName().append(".bkh"));;  // 重新构造文件名 bkh - Hash Block
-    ui->leBlockHashFile->setText(blockFilePath);
+
+    QString UniqueBlockFilePath = sourceInfo.dir().filePath(sourceInfo.baseName().append(".ubk"));;  // 重新构造文件名 bkh - Hash Block
+    ui->leUniqueBlockFile->setText(UniqueBlockFilePath);
+
+    QString blockHashFilePath = sourceInfo.dir().filePath(sourceInfo.baseName().append(".bkh"));;  // 重新构造文件名 bkh - Hash Block
+    ui->leBlockHashFile->setText(blockHashFilePath);
 
     /* 自动添加 recover 文件路径 */
     QString recoverFilePath = sourceInfo.dir().filePath(QString("RECOVERED_").append(sourceInfo.fileName()));

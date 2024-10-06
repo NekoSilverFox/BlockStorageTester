@@ -117,11 +117,12 @@ void AsyncComputeModule::finishAllJob(const bool drop_db)
 /**
  * @brief AsyncComputeModule::runTestSegmentationProfmance 将源文件分块，计算哈希，然后写入数据库和文件
  * @param source_file_path 源文件路径
- * @param block_file_path 分块后记录源文件块哈希的文件
+ * @param unqiue_block_file_path 存储唯一块的文件
+ * @param block_hash_file_path 分块后记录源文件块哈希的文件
  * @param alg 哈希算法
  * @param block_size 块大小（Byte）
  */
-void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path,
+void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file_path, const QString& unqiue_block_file_path, const QString& block_hash_file_path,
                                                 const HashAlg alg, const size_t block_size)
 {
     emit signalWriteInfoLog(QString("[Thread %1] Start test block segmentation performance").arg(getCurrentThreadID()));
@@ -156,22 +157,46 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     }
     emit signalWriteSuccLog(_last_log);
 
-    /* 创建块文件（输出） */
-    QFile blockFile(block_file_path);
-    QFileInfo blockInfo;
-    QDataStream out;
-    if (blockFile.open(QIODevice::WriteOnly))
+    /* 创建 Unique-Block file 唯一块文件（输出） */
+    QFile uniqueBlockFile(unqiue_block_file_path);
+    QFileInfo uniqueBlockInfo;
+    QDataStream uout;  // unique block out
+    if (uniqueBlockFile.open(QIODevice::WriteOnly))
     {
-        out.setDevice(&blockFile);
-        out.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
-        blockInfo.setFile(blockFile);
+        uout.setDevice(&uniqueBlockFile);
+        uout.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
+        uniqueBlockInfo.setFile(uniqueBlockFile);
 
-        _last_log = QString("[Thread %1] Successed create Hash-Block %2").arg(getCurrentThreadID(), blockInfo.filePath());
+        _last_log = QString("[Thread %1] Successed create Unique-Block file %2").arg(getCurrentThreadID(), uniqueBlockInfo.filePath());
         emit signalWriteSuccLog(_last_log);
     }
     else
     {
-        _last_log = QString("[Thread %1] Can not create Hash-Block %2").arg(getCurrentThreadID(), blockInfo.filePath());
+        _last_log = QString("[Thread %1] Can not create Unique-Block file %2").arg(getCurrentThreadID(), uniqueBlockInfo.filePath());
+        emit signalWriteErrorLog(_last_log);
+        emit signalErrorBox(_last_log);
+
+        emit signalSetActivityWidget(true);
+        emit signalTestSegmentationPerformanceFinished(false);
+        return;
+    }
+
+    /* 创建 Block-Hash file 块哈希文件（输出） */
+    QFile blockHashFile(block_hash_file_path);
+    QFileInfo blockHashInfo;
+    QDataStream hout;
+    if (blockHashFile.open(QIODevice::WriteOnly))
+    {
+        hout.setDevice(&blockHashFile);
+        hout.setVersion(QDataStream::Qt_DefaultCompiledVersion);  // hout - hash out 设置流的版本（可以根据实际情况设置，通常用于处理跨版本兼容性）
+        blockHashInfo.setFile(blockHashFile);
+
+        _last_log = QString("[Thread %1] Successed create Block-Hash file %2").arg(getCurrentThreadID(), blockHashInfo.filePath());
+        emit signalWriteSuccLog(_last_log);
+    }
+    else
+    {
+        _last_log = QString("[Thread %1] Can not create Block-Hash file %2").arg(getCurrentThreadID(), blockHashInfo.filePath());
         emit signalWriteErrorLog(_last_log);
         emit signalErrorBox(_last_log);
 
@@ -209,8 +234,13 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     /* 更新（初始化） UI 信息 */
     emit signalWriteInfoLog(QString("[Thread %1] "
                                     "From Source-File: %2, Size: %3<br>"
-                                    "to Hash-Block File: %4 and Table: %5<br>"
-                                    "with Hash-Alg: %6, Segmentation-Block-Size: %7 Bytes").arg(getCurrentThreadID(), fin->filePath(), QString::number(fin->fileSize()), blockInfo.filePath(), tb, Hash::getHashName(alg), QString::number(block_size)));
+                                    "To Unique-Block file %4<br>"
+                                    "Block-Hash File: %5<br>"
+                                    "Table: %6<br>"
+                                    "with Hash-Alg: %7, Segmentation-Block-Size: %8 Bytes").arg(getCurrentThreadID(), fin->filePath(), QString::number(fin->fileSize()),
+                                     uniqueBlockInfo.filePath(),
+                                     blockHashInfo.filePath(),
+                                     tb, Hash::getHashName(alg), QString::number(block_size)));
     emit signalSetLbRuningJobInfo(QString("Job: Test segmentation profmance | Hash alg: %1 | Block size: %2 | DB-Table: %3").arg(Hash::getHashName(alg), QString::number(block_size), tb));
     emit signalSetProgressBarRange(0, fin->fileSize());
     emit signalSetProgressBarValue(0);
@@ -221,7 +251,8 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
      * 开始读取 -> 计算哈希 -> 写入
      */
     QByteArray buf_block;       // 读取的源文件的 buffer（用来暂存当前块）
-    qint64 ptr_loc = 0;         // 读取指针目前所处的位置
+    qint64 ptr_source_loc = 0;  // 读取指针目前所处源文件的位置
+    qint64 ptr_unique_loc = 0;  // 指针目前所处 Unique-Block file 的位置
     size_t cur_block_size = 0;  // 本次读取块的大小（因为文件末尾最后块的大小有可能不是块大小的整数倍）
     QByteArray buf_hash;        // 存储当前块的哈希值
     size_t repeat_times = 0;    // 当前块的重复次数
@@ -251,7 +282,9 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
         if (0 == repeat_times)  // 重复次数为 0 说明没有记录过当前哈希
         {
             ++total_hash_records;
-            _dbs->insertNewBlockInfoRow(tb, buf_hash, fin->filePath(), ptr_loc, cur_block_size);
+            uout.writeRawData(buf_block, cur_block_size);  // 写入不带有数据头的数据
+            _dbs->insertNewBlockInfoRow(tb, buf_hash, uniqueBlockInfo.filePath(), ptr_unique_loc, cur_block_size);
+            ptr_unique_loc += cur_block_size;
         }
         else
         {
@@ -262,18 +295,18 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
 #if !QT_NO_DEBUG
         qDebug() << _dbs->lastLog();
         qDebug() << QString("↳ Read: %1, Hash: %2, Pointer location: %3, Repet times: %4").arg(
-            buf_block.toHex(), buf_hash.toHex(), QString::number(ptr_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
+            buf_block.toHex(), buf_hash.toHex(), QString::number(ptr_source_loc), QString::number(repeat_times));  // 输出读取的内容（十六进制格式显示）
         qDebug() << "---------------------------------";
 #endif
 
         // out << buf_hash;           // 记录哈希到文件【注意】通过 `<<` QDataStream 写入时，QDataStream 会在字符串的前面写入一个4字节的长度字段，表示接下来数据的长度
-        out.writeRawData(buf_hash, buf_hash.size());
-        ptr_loc += cur_block_size; // 移动指针位置
+        hout.writeRawData(buf_hash, buf_hash.size());
+        ptr_source_loc += cur_block_size; // 移动指针位置
 
         /* 刷新 ui */
-        if (0 == ptr_loc % 16 || fin->atEnd())
+        if (0 == ptr_source_loc % 16 || fin->atEnd())
         {
-            emit signalSetProgressBarValue(ptr_loc);
+            emit signalSetProgressBarValue(ptr_source_loc);
             emit signalSetLcdTotalDbHashRecords(total_hash_records);
             emit signalSetLcdTotalRepeat(total_repeat_times);
             emit signalSetLcdRepeatPercent((double)total_repeat_times/file_blocks*100);
@@ -290,7 +323,8 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
     _cur_result_comput.repeatRate     = (double)total_repeat_times/file_blocks*100;
     _cur_result_comput.segTime        = (double)(elapsed_time.elapsed() / 1000.0);
 
-    blockFile.close();
+    blockHashFile.close();
+    uniqueBlockFile.close();
     delete fin;
 
     emit signalCurSegmentationResult(_cur_result_comput);
@@ -309,11 +343,11 @@ void AsyncComputeModule::runTestSegmentationProfmance(const QString& source_file
 /**
  * @brief AsyncComputeModule::runTestRecoverProfmance 子线程开始恢复文件
  * @param recover_file_path  要恢复至的文件的文件名
- * @param block_file_path 存储哈希块的文件
+ * @param block_hash_file_path 存储哈希块的文件
  * @param alg 哈希算法
  * @param block_size 块大小
  */
-void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size)
+void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_path, const QString& block_hash_file_path, const HashAlg alg, const size_t block_size)
 {
     emit signalWriteInfoLog(QString("[Thread %1] Start test block recover performance").arg(getCurrentThreadID()));
 
@@ -333,7 +367,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     }
 
     /* 打开块文件（输入） */
-    InputFile* fin = new InputFile(this, block_file_path);
+    InputFile* fin = new InputFile(this, block_hash_file_path);
     bool is_succ = fin->isOpen();
     _last_log = QString("[Thread %1] %2").arg(getCurrentThreadID(), fin->lastLog());
     if (!is_succ)
@@ -385,7 +419,6 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     _last_log = QString("[Thread %1] %2").arg(getCurrentThreadID(), _dbs->lastLog());
     emit signalWriteSuccLog(_last_log);
 
-
     /* 计算耗时，这里 QTime 不起作用，因为开始计算后线程一只处于阻塞状态 */
     QElapsedTimer elapsed_time;
     elapsed_time.start();
@@ -401,7 +434,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
 
     /* 更新（初始化） UI 信息 */
     emit signalWriteInfoLog(QString("[Thread %1] "
-                                    "From Hash-Block-File: %2, Size: %3<br>"
+                                    "From Block-Hash-File: %2, Size: %3<br>"
                                     "To Recover-File: %4<br>"
                                     "With:<br>"
                                     "Hash alg: %5, Hash-Length: %6<br>"
@@ -500,12 +533,13 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
 /**
  * @brief AsyncComputeModule::runTestSingal 执行单步测试（分块性能 + 恢复性能）
  * @param source_file_path 源文件路径
- * @param block_file_path 存储哈希块的文件
+ * @param unqiue_block_file_path 存储块的文件
+ * @param block_hash_file_path 存储哈希块的文件
  * @param recover_file_path 要恢复至的文件的文件名
  * @param alg 哈希算法
  * @param block_size 块大小
  */
-void AsyncComputeModule::runSingleTest(const QString &source_file_path, const QString &block_file_path,
+void AsyncComputeModule::runSingleTest(const QString &source_file_path, const QString& unqiue_block_file_path, const QString &block_hash_file_path,
                                        const QString &recover_file_path, const HashAlg alg, const size_t block_size)
 {
     emit signalWriteInfoLog(QString("[Thread %1] Start to run Singal Test").arg(getCurrentThreadID()));
@@ -522,8 +556,8 @@ void AsyncComputeModule::runSingleTest(const QString &source_file_path, const QS
         return;
     }
 
-    runTestSegmentationProfmance(source_file_path, block_file_path, alg, block_size);
-    runTestRecoverProfmance(recover_file_path, block_file_path, alg, block_size);
+    runTestSegmentationProfmance(source_file_path, unqiue_block_file_path, block_hash_file_path, alg, block_size);
+    runTestRecoverProfmance(recover_file_path, block_hash_file_path, alg, block_size);
 
     emit signalWriteSuccLog(QString("[Thread %1] Singal Test done").arg(getCurrentThreadID()));
 }
@@ -532,12 +566,14 @@ void AsyncComputeModule::runSingleTest(const QString &source_file_path, const QS
 /**
  * @brief AsyncComputeModule::runBenchmarkTest 自动执行基准测试
  * @param source_file_path 源文件路径
- * @param block_file_path 存储哈希块的文件
+ * @param unqiue_block_file_path 存储块的文件
+ * @param block_hash_file_path 存储哈希块的文件
  * @param recover_file_path 要恢复至的文件的文件名
  * @param alg 哈希算法
  * @param block_size_list
  */
-void AsyncComputeModule::runBenchmarkTest(const QString &source_file_path, const QString &block_file_path, const QString &recover_file_path,
+void AsyncComputeModule::runBenchmarkTest(const QString &source_file_path, const QString& unqiue_block_file_path,
+                                          const QString &block_hash_file_path, const QString &recover_file_path,
                                           const HashAlg alg, const QList<size_t> &block_size_list)
 {
     emit signalWriteInfoLog(QString("[Thread %1] Start to run Benchmark Test").arg(getCurrentThreadID()));
@@ -570,10 +606,10 @@ void AsyncComputeModule::runBenchmarkTest(const QString &source_file_path, const
 
         emit signalWriteInfoLog(QString("[Thread %1] Benchmark Test with Block Size %2 Bytes, Hash-Alg %3").arg(getCurrentThreadID(), QString::number(block_size), Hash::getHashName(alg)));
 
-        runTestSegmentationProfmance(source_file_path, block_file_path, alg, block_size);
+        runTestSegmentationProfmance(source_file_path, unqiue_block_file_path, block_hash_file_path, alg, block_size);
         emit signalAddPointSegTimeAndRepeateRate(_cur_result_comput);
 
-        runTestRecoverProfmance(recover_file_path, block_file_path, alg, block_size);
+        runTestRecoverProfmance(recover_file_path, block_hash_file_path, alg, block_size);
         emit signalAddPointRecoverTime(_cur_result_comput);
     }
 

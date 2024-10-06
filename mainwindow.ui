@@ -1212,7 +1212,7 @@
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>200</height>
+           <height>150</height>
           </size>
          </property>
         </widget>

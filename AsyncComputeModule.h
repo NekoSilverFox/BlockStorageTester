@@ -25,13 +25,22 @@ public:
     void finishAllJob(const bool drop_db);  // 同时也是最后的数据库断开连接和删除操作，发出最终的退出信号
 
     /* 计算任务 */
-    void runTestSegmentationProfmance(const QString& source_file_path, const QString& block_file_path,
+    void runTestSegmentationProfmance(const QString& source_file_path,
+                                      const QString& unqiue_block_file_path,
+                                      const QString& block_hash_file_path,
                                       const HashAlg alg, const size_t block_size);
-    void runTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path,
+    void runTestRecoverProfmance(const QString& recover_file_path,
+                                 const QString& block_hash_file_path,
                                  const HashAlg alg, const size_t block_size);
-    void runSingleTest(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+    void runSingleTest(const QString& source_file_path,
+                       const QString& unqiue_block_file_path,
+                       const QString& block_hash_file_path,
+                       const QString& recover_file_path,
                        const HashAlg alg, const size_t block_size);
-    void runBenchmarkTest(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+    void runBenchmarkTest(const QString& source_file_path,
+                          const QString& unqiue_block_file_path,
+                          const QString& block_hash_file_path,
+                          const QString& recover_file_path,
                           const HashAlg alg, const QList<size_t>& block_size_list);
 
 signals:
@@ -81,16 +90,25 @@ signals:
     void signalDropCurDb();
 
     /* 计算任务信号 */
-    void signalRunTestSegmentationPerformance(const QString& source_file_path, const QString& block_file_path,
+    void signalRunTestSegmentationPerformance(const QString& source_file_path,
+                                              const QString& block_hash_file_path,
                                               const HashAlg alg, const size_t block_size);
     bool signalTestSegmentationPerformanceFinished(const bool is_succ);  // ↑ 任务完成信号
 
-    void signalRunTestRecoverProfmance(const QString& recover_file_path, const QString& block_file_path, const HashAlg alg, const size_t block_size);
+    void signalRunTestRecoverProfmance(const QString& recover_file_path,
+                                       const QString& block_hash_file_path,
+                                       const HashAlg alg, const size_t block_size);
     bool signalTestRecoverPerformanceFinished(const bool is_succ);        // ↑ 任务完成信号
 
-    void signalRunSingleTest(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+    void signalRunSingleTest(const QString& source_file_path,
+                             const QString& unqiue_block_file_path,
+                             const QString& block_hash_file_path,
+                             const QString& recover_file_path,
                              const HashAlg alg, const size_t block_size);
-    void signalRunBenchmarkTest(const QString& source_file_path, const QString& block_file_path, const QString& recover_file_path,
+    void signalRunBenchmarkTest(const QString& source_file_path,
+                                const QString& unqiue_block_file_path,
+                                const QString& block_hash_file_path,
+                                const QString& recover_file_path,
                                 const HashAlg alg, const QList<size_t>& block_size_list);
 
 

@@ -327,7 +327,7 @@ bool DatabaseService::isTableExists(const QString &tbName)
  * @brief DatabaseService::insertNewBlockInfoRow 插入新的块信息行
  * @param tbName 表名
  * @param blockHash 块的哈希值
- * @param sourceFilePath 源文件路径
+ * @param sourceFilePath 块所在文件的路径
  * @param blockLoc 块在源文件中的位置（第几字节）
  * @param blockSize 块的大小（Byte）
  * @return

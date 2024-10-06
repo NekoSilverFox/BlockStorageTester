@@ -394,7 +394,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
     InputFile* curSourceFile = nullptr;            // 用于读取源文件
     BlockInfo cur_block_info;
     const size_t hash_size = Hash::getHashSize(alg);  // 获取哈希块文件中，每个哈希的长度（这个长度是固定的）
-    const size_t num_need_recover = fin->fileSize() / hash_size;  // .hbk 文件中记录的哈希记录条数，同样的也是需要从源文件恢复几个块
+    const size_t num_need_recover = fin->fileSize() / hash_size;  // .bkh 文件中记录的哈希记录条数，同样的也是需要从源文件恢复几个块
     QByteArray buf_hash;                        // 用于读取块文件中存储的哈希值，读取的长度为 hash_size
     size_t total_cant_revcover = 0;             // 无法恢复块的数量（数据库中没记录这个块）
     const QByteArray blank_block(block_size, '\0'); // 如果没找到这个哈希值的源数据块，用这个全是 0 的数据填充 '\0' 是 ASCII 表中的空字符，对应二进制 0

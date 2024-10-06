@@ -88,7 +88,8 @@ private slots:
     void autoConnectionDBModule();
     void aboutThisProject();
     void selectSourceFile();
-    void selectBlockFile();
+    void selectUniqueBlockFile();
+    void selectBlockHashFile();
     void selectRecoverFile();
     void saveChartAsImage();
 

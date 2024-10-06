@@ -335,54 +335,71 @@
              <property name="bottomMargin">
               <number>0</number>
              </property>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="leBlockHashFile"/>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>Source  file</string>
+               </property>
+              </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="leSourceFile"/>
-             </item>
-             <item row="1" column="2">
+             <item row="2" column="3">
               <widget class="QPushButton" name="btnSelectBlockHashFile">
                <property name="text">
                 <string>Select</string>
                </property>
               </widget>
              </item>
-             <item row="2" column="2">
+             <item row="3" column="3">
               <widget class="QPushButton" name="btnSelectRecoverFile">
                <property name="text">
                 <string>Select</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_16">
-               <property name="text">
-                <string>Block Hash file</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_23">
-               <property name="text">
-                <string>Recover file</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QLineEdit" name="leRecoverFile"/>
-             </item>
-             <item row="0" column="2">
+             <item row="0" column="3">
               <widget class="QPushButton" name="btnSelectSourceFile">
                <property name="text">
                 <string>Select</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_15">
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_23">
                <property name="text">
-                <string>Source  file</string>
+                <string>Recover file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLineEdit" name="leBlockHashFile"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_16">
+               <property name="text">
+                <string>Block Hash file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_30">
+               <property name="text">
+                <string>Unique Block file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLineEdit" name="leSourceFile"/>
+             </item>
+             <item row="3" column="2">
+              <widget class="QLineEdit" name="leRecoverFile"/>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLineEdit" name="leUniqueBlockFile"/>
+             </item>
+             <item row="1" column="3">
+              <widget class="QPushButton" name="btnSelectUniqueBlockFile">
+               <property name="text">
+                <string>Select</string>
                </property>
               </widget>
              </item>

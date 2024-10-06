@@ -130,7 +130,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnDisconnect, &QPushButton::clicked, this, [=](){emit _asyncJob->signalDisconnDb();});
 
     connect(ui->btnSelectSourceFile, &QPushButton::clicked, this, &MainWindow::selectSourceFile);
-    connect(ui->btnSelectBlockHashFile, &QPushButton::clicked, this, &MainWindow::selectBlockFile);
+    connect(ui->btnSelectUniqueBlockFile, &QPushButton::clicked, this, &MainWindow::selectUniqueBlockFile);
+    connect(ui->btnSelectBlockHashFile, &QPushButton::clicked, this, &MainWindow::selectBlockHashFile);
     connect(ui->btnSelectRecoverFile, &QPushButton::clicked, this, &MainWindow::selectRecoverFile);
 
     connect(ui->btnRunSingleTest, &QPushButton::clicked, this, &MainWindow::startSingleTest);
@@ -213,6 +214,7 @@ void MainWindow::saveSettings()
     settings.setValue("cbAutoDropDB", ui->cbAutoDropDB->isChecked());
 
     settings.setValue("leSourceFile", ui->leSourceFile->text());
+    settings.setValue("leUniqueBlockFile", ui->leUniqueBlockFile->text());
     settings.setValue("leBlockHashFile", ui->leBlockHashFile->text());
     settings.setValue("leRecoverFile", ui->leRecoverFile->text());
 
@@ -235,6 +237,7 @@ void MainWindow::loadSettings()
     ui->cbAutoDropDB->setChecked(settings.value("cbAutoDropDB", true).toBool());
 
     ui->leSourceFile->setText(settings.value("leSourceFile", "").toString());
+    ui->leUniqueBlockFile->setText(settings.value("leUniqueBlockFile", "").toString());
     ui->leBlockHashFile->setText(settings.value("leBlockHashFile", "").toString());
     ui->leRecoverFile->setText(settings.value("leRecoverFile", "").toString());
 
@@ -783,6 +786,7 @@ void MainWindow::setActivityWidget(const bool activity)
     ui->leBlockHashFile->setReadOnly(!activity);
     ui->leRecoverFile->setReadOnly(!activity);
     ui->btnSelectSourceFile->setEnabled(activity);
+    ui->btnSelectUniqueBlockFile->setEnabled(activity);
     ui->btnSelectBlockHashFile->setEnabled(activity);
     ui->btnSelectRecoverFile->setEnabled(activity);
 
@@ -1185,12 +1189,25 @@ void MainWindow::selectSourceFile()
     return;
 }
 
-void MainWindow::selectBlockFile()
+void MainWindow::selectUniqueBlockFile()
 {
-    QString path = QFileDialog::getSaveFileName(this, "Save path of block file", QDir::homePath());
+    QString path = QFileDialog::getSaveFileName(this, "Save path of Unique-Block (.ubk) file", QDir::homePath());
     if (path.isEmpty())
     {
-        QMessageBox::warning(this, "Warning", "Do not selected any file!");
+        QMessageBox::warning(this, "Warning", "Do not selected any Unique-Block file!");
+        return;
+    }
+    ui->leUniqueBlockFile->setText(path);
+
+    return;
+}
+
+void MainWindow::selectBlockHashFile()
+{
+    QString path = QFileDialog::getSaveFileName(this, "Save path of Block-Hash (.bkh) file", QDir::homePath());
+    if (path.isEmpty())
+    {
+        QMessageBox::warning(this, "Warning", "Do not selected any Block-Hash file!");
         return;
     }
     ui->leBlockHashFile->setText(path);

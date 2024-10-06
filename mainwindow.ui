@@ -336,13 +336,13 @@
               <number>0</number>
              </property>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="leBlockFile"/>
+              <widget class="QLineEdit" name="leBlockHashFile"/>
              </item>
              <item row="0" column="1">
               <widget class="QLineEdit" name="leSourceFile"/>
              </item>
              <item row="1" column="2">
-              <widget class="QPushButton" name="btnSelectBlockFile">
+              <widget class="QPushButton" name="btnSelectBlockHashFile">
                <property name="text">
                 <string>Select</string>
                </property>
@@ -358,7 +358,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label_16">
                <property name="text">
-                <string>Block     file</string>
+                <string>Block Hash file</string>
                </property>
               </widget>
              </item>
@@ -1394,13 +1394,13 @@
   <tabstop>leDatabase</tabstop>
   <tabstop>btnConnectDB</tabstop>
   <tabstop>btnSelectSourceFile</tabstop>
-  <tabstop>btnSelectBlockFile</tabstop>
+  <tabstop>btnSelectBlockHashFile</tabstop>
   <tabstop>cbBlockSize</tabstop>
   <tabstop>cbHashAlg</tabstop>
   <tabstop>btnRunSingleTest</tabstop>
   <tabstop>cbAutoDropDB</tabstop>
   <tabstop>leSourceFile</tabstop>
-  <tabstop>leBlockFile</tabstop>
+  <tabstop>leBlockHashFile</tabstop>
   <tabstop>btnDisconnect</tabstop>
  </tabstops>
  <resources/>

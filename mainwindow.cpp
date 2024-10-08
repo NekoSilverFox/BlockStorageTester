@@ -30,6 +30,8 @@ MainWindow::MainWindow(QWidget *parent)
     _listResultComput = new QList<ResultComput>();
     ui->cvSegTime->setVisible(false);
     ui->cvRecoverTime->setVisible(false);
+    ui->cvSegAndRecoverTime->setRubberBand(QChartView::RectangleRubberBand); // 启用缩放
+    ui->cvRepeatRate->setRubberBand(QChartView::RectangleRubberBand); // 启用缩放
 
     /* 图表显示 */
 #if 0
@@ -136,6 +138,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->btnRunSingleTest, &QPushButton::clicked, this, &MainWindow::startSingleTest);
     connect(ui->btnRunBenchmarkTest, &QPushButton::clicked, this, &MainWindow::startBenchmarkTest);
+    connect(ui->btnResetView, &QPushButton::clicked, this, [=]() {
+        _chart_seg_recover_time->zoomReset(); // 使用zoomReset恢复到初始缩放状态
+        _chart_seg_recover_time->zoom(_orig_rect_chart_repeat_rate.width() / _chart_seg_recover_time->plotArea().width()); // 根据记录的初始大小恢复
+
+        _chart_repeat_rate->zoomReset(); // 使用zoomReset恢复到初始缩放状态
+        _chart_repeat_rate->zoom(_orig_rect_chart_repeat_rate.width() / _chart_repeat_rate->plotArea().width()); // 根据记录的初始大小恢复
+    });
 
     /* 接收/处理子线程任务发出的信号 */
     _threadAsyncJob = new QThread(this);
@@ -379,6 +388,7 @@ void MainWindow::initAllCharts()
               QList<Qt::GlobalColor>() << Qt::red  << Qt::darkYellow,
               _x_seg_recover_time, "Block size (Byte)",
               _y_seg_recover_time, "Time (s)");
+    _orig_rect_chart_seg_rec_time = _chart_seg_recover_time->plotArea();
 
     initChart(ui->cvRepeatRate, _chart_repeat_rate,
               QString("Percentage of repeats versus block size (Base on %1)").arg(hash_name),
@@ -386,6 +396,7 @@ void MainWindow::initAllCharts()
               _spline_repeat_rate, _scatter_repeat_rate,
               _x_repeat_rate, "Block size (Byte)",
               _y_repeat_rate, "Percent (%)");
+    _orig_rect_chart_repeat_rate = _chart_repeat_rate->plotArea();
 
     writeSuccLog("Successed init all charts");
 }
@@ -477,10 +488,21 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
 
     // 当鼠标悬停在点上时，触发信号，显示数据
     QObject::connect(scatter, &QScatterSeries::hovered, this, [=](const QPointF& point, bool state) {
+        QFont font;
         if (state) {
+            scatter->setMarkerSize(ThemeStyle::SCATTER_MARK_SIZE * 1.5); // 悬停时放大点
+
+            // 设置放大的字体大小
+            font.setPointSize(ThemeStyle::FONT_POINT_HOVER_SIZE); // 设置字体大小为16（可根据需要调整）
+            QToolTip::setFont(font);
             QToolTip::showText(QCursor::pos(),
                                QString("X: %1, Y: %2").arg(point.x()).arg(point.y()),
                                chartView);
+        } else {
+            font.setPointSize(ThemeStyle::FONT_POINT_DEFALUT_SIZE); // 设置字体大小为12（可根据需要调整）
+            QToolTip::setFont(font);
+
+            scatter->setMarkerSize(ThemeStyle::SCATTER_MARK_SIZE); // 恢复原始大小
         }
     });  // 使用 UniqueConnection 避免信号重复连接
 
@@ -616,13 +638,26 @@ bool MainWindow::initChart(QChartView* chartView, QChart* chart,
 
         // 当鼠标悬停在点上时，触发信号，显示数据
         QObject::connect(scatter, &QScatterSeries::hovered, this, [=](const QPointF& point, bool state) {
+            QFont font;
             if (state) {
+                scatter->setMarkerSize(ThemeStyle::SCATTER_MARK_SIZE * 1.5); // 悬停时放大点
+
+                // 设置放大的字体大小
+                font.setPointSize(ThemeStyle::FONT_POINT_HOVER_SIZE); // 设置字体大小为16（可根据需要调整）
+                QToolTip::setFont(font);
                 QToolTip::showText(QCursor::pos(),
                                    QString("X: %1, Y: %2").arg(point.x()).arg(point.y()),
                                    chartView);
+            } else {
+                font.setPointSize(ThemeStyle::FONT_POINT_DEFALUT_SIZE); // 设置字体大小为12（可根据需要调整）
+                QToolTip::setFont(font);
+
+                scatter->setMarkerSize(ThemeStyle::SCATTER_MARK_SIZE); // 恢复原始大小
             }
         });  // 使用 UniqueConnection 避免信号重复连接
+
     }
+
 
     if (chartView->chart() != nullptr)
     {
@@ -686,6 +721,7 @@ bool MainWindow::addPointSegTimeAndRepeateRate(const ResultComput &result)
     if (result.segTime > _y_seg_recover_time->max())
     {
         _y_seg_recover_time->setRange(0.0, result.segTime);
+        _orig_rect_chart_seg_rec_time = _chart_seg_recover_time->plotArea();
     }
 
     writeInfoLog(QString("Add data point (%1, %2) to chart Repeate rate").arg(QString::number(result.blockSize), QString::number(result.repeatRate)));
@@ -695,6 +731,7 @@ bool MainWindow::addPointSegTimeAndRepeateRate(const ResultComput &result)
     if (result.repeatRate > _y_repeat_rate->max())
     {
         _y_repeat_rate->setRange(0.0, result.repeatRate);
+        _orig_rect_chart_repeat_rate = _chart_repeat_rate->plotArea();
     }
 
     return true;
@@ -736,6 +773,7 @@ bool MainWindow::addPointRecoverTime(const ResultComput &result)
     if (result.recoveredTime > _y_seg_recover_time->max())
     {
         _y_seg_recover_time->setRange(0.0, result.recoveredTime);
+        _orig_rect_chart_seg_rec_time = _chart_seg_recover_time->plotArea();
     }
 
     return true;

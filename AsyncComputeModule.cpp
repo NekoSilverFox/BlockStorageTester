@@ -469,6 +469,7 @@ void AsyncComputeModule::runTestRecoverProfmance(const QString &recover_file_pat
             emit signalWriteWarningLog(_last_log);
 #if !QT_NO_DEBUG
             qDebug() << _last_log;
+
 #endif
             continue;
         }

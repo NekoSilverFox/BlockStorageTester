@@ -44,7 +44,6 @@ public:
                           const HashAlg alg, const QList<size_t>& block_size_list);
 
 signals:
-    /* 设置UI */
     void signalSetLbDBConnectedStyle(QString style);
     void signalSetLbSegmentationStyle(QString style);
     void signalSetLbRecoverStyle(QString style);
